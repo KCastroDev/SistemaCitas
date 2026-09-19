@@ -83,6 +83,7 @@ public class Especialidad
 
     [Required(ErrorMessage = "El nombre de la especialidad es obligatorio")]
     [StringLength(80, MinimumLength = 4, ErrorMessage = "El nombre debe tener entre 4 y 80 caracteres")]
+    [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$", ErrorMessage = "El nombre solo puede contener letras y espacios")]
     [Display(Name = "Nombre de la especialidad")]
     [Remote(action: "NombreDisponible", controller: "Especialidades", AdditionalFields = nameof(IdEspecialidad))]
     public string Nombre { get; set; } = null!;
