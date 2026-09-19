@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaCitas.Models;
 
@@ -31,7 +32,7 @@ public class Ipress
     public string Nombre { get; set; } = null!;
 
     [Required, StringLength(3)]
-    public string NivelAtencion { get; set; } = null!;    // I, II, III
+    public string NivelAtencion { get; set; } = null!;
 
     [StringLength(200)]
     public string? Direccion { get; set; }
@@ -55,7 +56,7 @@ public class PlanSeguro
     public int IdPlanSeguro { get; set; }
 
     [Required, StringLength(60)]
-    public string Nombre { get; set; } = null!;           // SIS Gratuito, Para Todos...
+    public string Nombre { get; set; } = null!;
 
     public ICollection<Paciente> Pacientes { get; set; } = new List<Paciente>();
 }
@@ -67,9 +68,9 @@ public class TipoContrato
     public int IdTipoContrato { get; set; }
 
     [Required, StringLength(40)]
-    public string Nombre { get; set; } = null!;           // Honorarios, Part time, Full day
+    public string Nombre { get; set; } = null!;
 
-    public int HorasSemanales { get; set; }               // tope de horas para validar horarios
+    public int HorasSemanales { get; set; }
 
     public ICollection<Doctor> Doctores { get; set; } = new List<Doctor>();
 }
@@ -80,8 +81,13 @@ public class Especialidad
     [Key]
     public int IdEspecialidad { get; set; }
 
-    [Required, StringLength(80)]
+    [Required(ErrorMessage = "El nombre de la especialidad es obligatorio")]
+    [StringLength(80, MinimumLength = 4, ErrorMessage = "El nombre debe tener entre 4 y 80 caracteres")]
+    [Display(Name = "Nombre de la especialidad")]
+    [Remote(action: "NombreDisponible", controller: "Especialidades", AdditionalFields = nameof(IdEspecialidad))]
     public string Nombre { get; set; } = null!;
+
+    public bool Activo { get; set; } = true;
 
     public ICollection<DoctorEspecialidad> DoctorEspecialidades { get; set; } = new List<DoctorEspecialidad>();
 }
