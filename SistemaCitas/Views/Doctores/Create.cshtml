@@ -1,0 +1,89 @@
+﻿@model SistemaCitas.ViewModels.DoctorViewModel
+@{
+    ViewData["Title"] = "Nuevo doctor";
+}
+
+<h1>Nuevo doctor</h1>
+<p class="text-muted">Se crea también su cuenta de acceso con el rol <strong>Doctor</strong>.</p>
+
+<form asp-action="Create" method="post" style="max-width: 720px;">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <h5 class="mt-3">Datos del doctor</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="Dni" class="form-label"></label>
+            <input asp-for="Dni" class="form-control" maxlength="8" inputmode="numeric" />
+            <span asp-validation-for="Dni" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Cmp" class="form-label"></label>
+            <input asp-for="Cmp" class="form-control" maxlength="6" inputmode="numeric" />
+            <span asp-validation-for="Cmp" class="text-danger"></span>
+        </div>
+        <div class="col-12">
+            <label asp-for="Nombres" class="form-label"></label>
+            <input asp-for="Nombres" class="form-control" />
+            <span asp-validation-for="Nombres" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ApellidoPaterno" class="form-label"></label>
+            <input asp-for="ApellidoPaterno" class="form-control" />
+            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ApellidoMaterno" class="form-label"></label>
+            <input asp-for="ApellidoMaterno" class="form-control" />
+            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h5 class="mt-4">Datos laborales</h5>
+    <div class="row g-3">
+        <div class="col-12">
+            <label asp-for="IdIpress" class="form-label"></label>
+            <select asp-for="IdIpress" asp-items="Model.Ipresses" class="form-select">
+                <option value="">-- Seleccione --</option>
+            </select>
+            <span asp-validation-for="IdIpress" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="IdEspecialidad" class="form-label"></label>
+            <select asp-for="IdEspecialidad" asp-items="Model.Especialidades" class="form-select">
+                <option value="">-- Seleccione --</option>
+            </select>
+            <span asp-validation-for="IdEspecialidad" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="IdTipoContrato" class="form-label"></label>
+            <select asp-for="IdTipoContrato" asp-items="Model.Contratos" class="form-select">
+                <option value="">-- Seleccione --</option>
+            </select>
+            <span asp-validation-for="IdTipoContrato" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h5 class="mt-4">Cuenta de acceso</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="Correo" class="form-label"></label>
+            <input asp-for="Correo" class="form-control" type="email" />
+            <span asp-validation-for="Correo" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Contrasena" class="form-label"></label>
+            <input asp-for="Contrasena" class="form-control" />
+            <span asp-validation-for="Contrasena" class="text-danger"></span>
+            <div class="form-text">Mínimo 8 caracteres, con mayúscula, minúscula y número.</div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
