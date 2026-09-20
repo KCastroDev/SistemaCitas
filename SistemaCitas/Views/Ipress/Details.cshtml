@@ -1,0 +1,32 @@
+﻿@model SistemaCitas.Models.Ipress
+@{
+    ViewData["Title"] = "Detalle de IPRESS";
+}
+
+<h2>Detalle de IPRESS</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Código RENIPRESS</dt>
+    <dd class="col-sm-9">@Model.CodigoRenipress</dd>
+
+    <dt class="col-sm-3">Nombre</dt>
+    <dd class="col-sm-9">@Model.Nombre</dd>
+
+    <dt class="col-sm-3">Nivel de atención</dt>
+    <dd class="col-sm-9">@Model.NivelAtencion</dd>
+
+    <dt class="col-sm-3">Dirección</dt>
+    <dd class="col-sm-9">@Model.Direccion</dd>
+
+    <dt class="col-sm-3">Unidad Ejecutora</dt>
+    <dd class="col-sm-9">@Model.UnidadEjecutora.Nombre</dd>
+
+    <dt class="col-sm-3">Distrito</dt>
+    <dd class="col-sm-9">@Model.Distrito.Nombre</dd>
+
+    <dt class="col-sm-3">Estado</dt>
+    <dd class="col-sm-9">@(Model.Activo ? "Activo" : "Inhabilitado")</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.IdIpress" class="btn btn-warning">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>

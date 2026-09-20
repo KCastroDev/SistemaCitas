@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaCitas.Data;
 
@@ -11,9 +12,11 @@ using SistemaCitas.Data;
 namespace SistemaCitas.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260920031009_InitDB1")]
+    partial class InitDB1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -999,26 +1002,6 @@ namespace SistemaCitas.Migrations
                     b.HasKey("IdUnidadEjecutora");
 
                     b.ToTable("UNIDAD_EJECUTORA");
-
-                    b.HasData(
-                        new
-                        {
-                            IdUnidadEjecutora = 1,
-                            Codigo = "001-1310",
-                            Nombre = "Red de Salud Trujillo"
-                        },
-                        new
-                        {
-                            IdUnidadEjecutora = 2,
-                            Codigo = "001-1311",
-                            Nombre = "Hospital Regional Docente de Trujillo"
-                        },
-                        new
-                        {
-                            IdUnidadEjecutora = 3,
-                            Codigo = "001-1312",
-                            Nombre = "Red de Salud Sánchez Carrión"
-                        });
                 });
 
             modelBuilder.Entity("SistemaCitas.Models.Usuario", b =>

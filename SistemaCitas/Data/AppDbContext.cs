@@ -33,9 +33,14 @@ public class AppDbContext : IdentityDbContext<Usuario>
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        base.OnModelCreating(b);   
+        base.OnModelCreating(b);
 
-        
+
+        b.Entity<UnidadEjecutora>().HasData(
+            new UnidadEjecutora { IdUnidadEjecutora = 1, Codigo = "001-1310", Nombre = "Red de Salud Trujillo" },
+            new UnidadEjecutora { IdUnidadEjecutora = 2, Codigo = "001-1311", Nombre = "Hospital Regional Docente de Trujillo" },
+            new UnidadEjecutora { IdUnidadEjecutora = 3, Codigo = "001-1312", Nombre = "Red de Salud Sánchez Carrión" });
+
         b.Entity<Usuario>().ToTable("USUARIO");
         b.Entity<IdentityRole>().ToTable("ROL");
         b.Entity<IdentityUserRole<string>>().ToTable("USUARIO_ROL");
