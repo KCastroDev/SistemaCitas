@@ -26,7 +26,31 @@ builder.Services.AddDefaultIdentity<Usuario>(o =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
+// Cookie de sesion: a donde mandar al usuario si no ha iniciado sesion o no tiene permiso
+builder.Services.ConfigureApplicationCookie(o =>
+{
+    o.LoginPath = "/Auth/Login";
+    o.AccessDeniedPath = "/Auth/AccessDenied";
+    o.ExpireTimeSpan = TimeSpan.FromHours(8);
+    o.SlidingExpiration = true;
+});
+
 var app = builder.Build();
+
+// Crea los roles y el administrador inicial si todavia no existen.
+// Si la base de datos aun no esta lista (falta Update-Database), la app igual arranca
+// y solo muestra una advertencia en la consola.
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        await SistemaCitas.Data.InicializadorDatos.InicializarAsync(scope.ServiceProvider, app.Configuration);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "No se pudieron crear los roles/administrador iniciales. Verifique la cadena de conexion y ejecute Update-Database.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
