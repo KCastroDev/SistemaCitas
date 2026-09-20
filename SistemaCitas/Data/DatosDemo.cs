@@ -31,21 +31,21 @@ public static class DatosDemo
     private static readonly DoctorDemo[] Doctores =
     {
         new("41234501", "70121", "Carlos",   "Ramírez",  "Vega",    "dr.ramirez@sistemacitas.pe",  0, 3, "Medicina General",
-            new[] { new Bloque(new[] {1,2,3,4,5,6}, 8, 12) }),                                   // 24 h
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 8, 12) }),                                 // 28 h (incluye domingo)
         new("41234502", "70122", "Lucía",    "Torres",   "Paredes", "dra.torres@sistemacitas.pe",  0, 2, "Pediatria",
-            new[] { new Bloque(new[] {1,2,3,4,5,6}, 8, 12) }),                                   // 24 h
+            new[] { new Bloque(new[] {1,2,3,4,5,7}, 8, 12) }),                                   // 24 h (incluye domingo)
         new("41234503", "70123", "Miguel",   "Castillo", "Rojas",   "dr.castillo@sistemacitas.pe", 2, 2, "Ginecologia",
-            new[] { new Bloque(new[] {2,4,6}, 14, 18) }),                                        // 12 h
+            new[] { new Bloque(new[] {2,4,6,7}, 14, 18) }),                                      // 16 h (incluye domingo)
         new("41234504", "70124", "Rosa",     "Salazar",  "Quispe",  "dra.salazar@sistemacitas.pe", 2, 1, "Medicina General",
             new[] { new Bloque(new[] {1,3,6}, 8, 12) }),                                         // 12 h
         new("41234505", "70125", "Jorge",    "Mendoza",  "Flores",  "dr.mendoza@sistemacitas.pe",  1, 3, "Cirugia",
-            new[] { new Bloque(new[] {1,2,3,4,5}, 8, 14), new Bloque(new[] {6}, 8, 12) }),       // 34 h
+            new[] { new Bloque(new[] {1,2,3,4,5,7}, 8, 14), new Bloque(new[] {6}, 8, 12) }),     // 40 h (incluye domingo)
         new("41234506", "70126", "Ana",      "Paredes",  "León",    "dra.paredes@sistemacitas.pe", 1, 2, "Pediatria",
             new[] { new Bloque(new[] {1,2,3,4,5}, 14, 18), new Bloque(new[] {6}, 8, 12) }),      // 24 h
         new("41234507", "70127", "Luis",     "Vargas",   "Cruz",    "dr.vargas@sistemacitas.pe",   1, 3, "Ginecologia",
-            new[] { new Bloque(new[] {1,2,3,4,5,6}, 9, 13, 2) }),                                // 24 h
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 9, 13, 2) }),                              // 28 h (incluye domingo)
         new("41234508", "70128", "Patricia", "Díaz",     "Luna",    "dra.diaz@sistemacitas.pe",    0, 2, "Medicina General",
-            new[] { new Bloque(new[] {1,2,3,4,5,6}, 14, 18) }),                                  // 24 h
+            new[] { new Bloque(new[] {1,2,3,4,5,7}, 14, 18) }),                                  // 24 h (incluye domingo)
         // CMP que termina en 0: la validacion simulada lo marca "No habilitado" (RF-05). No se le crean horarios.
         new("41234509", "70120", "Roberto",  "Chávez",   "Ibáñez",  "dr.chavez@sistemacitas.pe",   2, 1, "Cirugia",
             Array.Empty<Bloque>()),
@@ -64,6 +64,45 @@ public static class DatosDemo
         new("71000009", "Elena",       "Torres",   "Bazán",   new(1992, 8, 11), "F", "987000009", 3, "130109", 100m, null),
         new("71000010", "Diego",       "Cabrera",  "Lozano",  new(2008, 6, 3),  "M", "987000010", 2, "130101", 100m, null),
     };
+
+    // Convierte el horario de demo en filas de HORARIO_DOCTOR
+    private static List<HorarioDoctor> ArmarHorarios(DoctorDemo d)
+    {
+        var lista = new List<HorarioDoctor>();
+        foreach (var bloque in d.Horario)
+            foreach (var dia in bloque.Dias)
+                lista.Add(new HorarioDoctor
+                {
+                    DiaSemana = dia,
+                    HoraInicio = new TimeOnly(bloque.Desde, 0),
+                    HoraFin = new TimeOnly(bloque.Hasta, 0),
+                    CuposPorHora = bloque.CuposPorHora,
+                    Activo = true
+                });
+        return lista;
+    }
+
+    // Si el horario guardado del doctor de demo es distinto al definido aqui, lo reemplaza
+    private static async Task SincronizarHorariosAsync(AppDbContext db, Doctor doctor, DoctorDemo d)
+    {
+        if (doctor.EstadoHabilitacion != "Habilitado") return;
+
+        var deseado = ArmarHorarios(d);
+        var actual = doctor.Horarios.Where(h => h.Activo).ToList();
+
+        static string Clave(HorarioDoctor h) => $"{h.DiaSemana}|{h.HoraInicio}|{h.HoraFin}|{h.CuposPorHora}";
+        var iguales = actual.Count == deseado.Count &&
+                      actual.Select(Clave).OrderBy(x => x).SequenceEqual(deseado.Select(Clave).OrderBy(x => x));
+        if (iguales) return;
+
+        db.RemoveRange(doctor.Horarios);
+        foreach (var h in deseado)
+        {
+            h.IdDoctor = doctor.IdDoctor;
+            db.Add(h);
+        }
+        await db.SaveChangesAsync();
+    }
 
     public static async Task CargarAsync(IServiceProvider servicios)
     {
@@ -99,7 +138,14 @@ public static class DatosDemo
         // 2) Doctores con su cuenta, especialidad y horarios
         foreach (var d in Doctores)
         {
-            if (await db.Set<Doctor>().AnyAsync(x => x.Dni == d.Dni || x.Cmp == d.Cmp)) continue;
+            // Si el doctor de demo ya existe, solo se actualizan sus horarios (por ejemplo, para agregar domingos)
+            var existente = await db.Set<Doctor>().Include(x => x.Horarios).FirstOrDefaultAsync(x => x.Dni == d.Dni);
+            if (existente != null)
+            {
+                await SincronizarHorariosAsync(db, existente, d);
+                continue;
+            }
+            if (await db.Set<Doctor>().AnyAsync(x => x.Cmp == d.Cmp)) continue;
             if (await userManager.FindByEmailAsync(d.Correo) != null) continue;
 
             var especialidad = await db.Set<Especialidad>().FirstOrDefaultAsync(e => e.Nombre == d.Especialidad);
@@ -128,16 +174,8 @@ public static class DatosDemo
 
             if (habilitado)
             {
-                foreach (var bloque in d.Horario)
-                    foreach (var dia in bloque.Dias)
-                        doctor.Horarios.Add(new HorarioDoctor
-                        {
-                            DiaSemana = dia,
-                            HoraInicio = new TimeOnly(bloque.Desde, 0),
-                            HoraFin = new TimeOnly(bloque.Hasta, 0),
-                            CuposPorHora = bloque.CuposPorHora,
-                            Activo = true
-                        });
+                foreach (var h in ArmarHorarios(d))
+                    doctor.Horarios.Add(h);
             }
 
             db.Add(doctor);

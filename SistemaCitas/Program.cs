@@ -26,6 +26,8 @@ builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IPrioridadService, PrioridadService>();
 builder.Services.AddScoped<ICitaService, CitaService>();
+builder.Services.AddScoped<IHistorialPuntajeRepositorio, HistorialPuntajeRepositorio>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddDefaultIdentity<Usuario>(o =>
 {
