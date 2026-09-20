@@ -1,0 +1,58 @@
+﻿@model IEnumerable<SistemaCitas.Models.Paciente>
+@{
+    ViewData["Title"] = "Admisión - Pacientes";
+}
+
+<h1 class="mb-3">Admisión: pacientes</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success fs-5">@TempData["Mensaje"]</div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a asp-action="Registrar" class="btn btn-primary btn-lg">Registrar paciente</a>
+
+    <form asp-action="Index" method="get" class="d-flex gap-2">
+        <input type="text" name="buscar" value="@ViewData["Buscar"]"
+               class="form-control form-control-lg" placeholder="DNI, nombre o apellido" />
+        <button type="submit" class="btn btn-outline-secondary btn-lg">Buscar</button>
+    </form>
+</div>
+
+<table class="table table-striped table-hover fs-5">
+    <thead class="table-light">
+        <tr>
+            <th>DNI</th>
+            <th>Apellidos y nombres</th>
+            <th>Nacimiento</th>
+            <th>Sexo</th>
+            <th>Teléfono</th>
+            <th>Importancia</th>
+            <th>Cuenta web</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Dni</td>
+                <td>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</td>
+                <td>@p.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                <td>@(p.Sexo == "M" ? "Masculino" : "Femenino")</td>
+                <td>@(string.IsNullOrEmpty(p.Telefono) ? "-" : p.Telefono)</td>
+                <td>@p.PorcentajeImportancia.ToString("0.##")%</td>
+                <td>
+                    <span class="badge @(p.UsuarioId != null ? "bg-success" : "bg-secondary")">
+                        @(p.UsuarioId != null ? "Sí" : "No")
+                    </span>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary fs-5">No se encontraron pacientes.</div>
+}
