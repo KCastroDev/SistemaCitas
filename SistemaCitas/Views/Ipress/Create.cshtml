@@ -1,0 +1,60 @@
+﻿@model SistemaCitas.ViewModels.IpressViewModel
+@{
+    ViewData["Title"] = "Nueva IPRESS";
+}
+
+<h2>Nueva IPRESS</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="CodigoRenipress" class="form-label"></label>
+        <input asp-for="CodigoRenipress" class="form-control" />
+        <span asp-validation-for="CodigoRenipress" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NivelAtencion" class="form-label"></label>
+        <select asp-for="NivelAtencion" asp-items="Model.Niveles" class="form-select">
+            <option value="">-- Seleccione --</option>
+        </select>
+        <span asp-validation-for="NivelAtencion" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Direccion" class="form-label"></label>
+        <input asp-for="Direccion" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IdUnidadEjecutora" class="form-label"></label>
+        <select asp-for="IdUnidadEjecutora" asp-items="Model.UnidadesEjecutoras" class="form-select">
+            <option value="">-- Seleccione --</option>
+        </select>
+        <span asp-validation-for="IdUnidadEjecutora" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IdDistrito" class="form-label"></label>
+        <select asp-for="IdDistrito" asp-items="Model.Distritos" class="form-select">
+            <option value="">-- Seleccione --</option>
+        </select>
+        <span asp-validation-for="IdDistrito" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
