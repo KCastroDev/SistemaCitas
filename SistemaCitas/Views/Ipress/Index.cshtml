@@ -1,0 +1,68 @@
+﻿@model List<SistemaCitas.Models.Ipress>
+@{
+    ViewData["Title"] = "IPRESS";
+}
+
+<h2>Gestión de IPRESS</h2>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success">@TempData["Mensaje"]</div>
+}
+
+<a asp-action="Create" class="btn btn-primary mb-3">Nueva IPRESS</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>RENIPRESS</th>
+            <th>Nombre</th>
+            <th>Nivel</th>
+            <th>Unidad Ejecutora</th>
+            <th>Distrito</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model)
+        {
+            <tr>
+                <td>@i.CodigoRenipress</td>
+                <td>@i.Nombre</td>
+                <td>@i.NivelAtencion</td>
+                <td>@i.UnidadEjecutora.Nombre</td>
+                <td>@i.Distrito.Nombre</td>
+                <td>
+                    @if (i.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inhabilitado</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@i.IdIpress" class="btn btn-sm btn-info">Ver</a>
+                    <a asp-action="Edit" asp-route-id="@i.IdIpress" class="btn btn-sm btn-warning">Editar</a>
+                    @if (i.Activo)
+                    {
+                        <form asp-action="Inhabilitar" asp-route-id="@i.IdIpress" method="post" style="display:inline">
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('¿Inhabilitar esta IPRESS?');">
+                                Inhabilitar
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Habilitar" asp-route-id="@i.IdIpress" method="post" style="display:inline">
+                            <button type="submit" class="btn btn-sm btn-success">Habilitar</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
