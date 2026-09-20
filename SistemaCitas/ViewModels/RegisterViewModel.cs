@@ -14,17 +14,20 @@ public class RegisterViewModel
     public string Dni { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese sus nombres")]
-    [StringLength(60)]
+    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "Los nombres solo pueden tener letras y espacios")]
+    [StringLength(60, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 60 letras")]
     [Display(Name = "Nombres")]
     public string Nombres { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese su apellido paterno")]
-    [StringLength(60)]
+    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "El apellido paterno solo puede tener letras y espacios")]
+    [StringLength(60, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 60 letras")]
     [Display(Name = "Apellido paterno")]
     public string ApellidoPaterno { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese su apellido materno")]
-    [StringLength(60)]
+    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "El apellido materno solo puede tener letras y espacios")]
+    [StringLength(60, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 60 letras")]
     [Display(Name = "Apellido materno")]
     public string ApellidoMaterno { get; set; } = null!;
 
@@ -38,7 +41,7 @@ public class RegisterViewModel
     [Display(Name = "Sexo")]
     public string Sexo { get; set; } = null!;
 
-    [RegularExpression(@"^\d{9}$", ErrorMessage = "El teléfono debe tener 9 dígitos")]
+    [RegularExpression(@"^9\d{8}$", ErrorMessage = "El teléfono debe tener 9 dígitos y empezar con 9")]
     [Display(Name = "Teléfono (opcional)")]
     public string? Telefono { get; set; }
 
