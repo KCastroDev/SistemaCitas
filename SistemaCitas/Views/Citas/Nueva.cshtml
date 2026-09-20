@@ -1,0 +1,17 @@
+﻿@model SistemaCitas.ViewModels.BuscarCuposViewModel
+@{
+    ViewData["Title"] = "Agendar cita";
+    ViewData["Controlador"] = "Citas";
+    ViewData["ActionBuscar"] = "Nueva";
+}
+
+<h1 class="mb-3">Agendar cita</h1>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger fs-5">@TempData["Error"]</div>
+}
+
+<partial name="_BuscadorCupos" model="Model" view-data="ViewData" />
+
+<a asp-action="Index" class="btn btn-link mt-3">&larr; Volver a mis citas</a>
