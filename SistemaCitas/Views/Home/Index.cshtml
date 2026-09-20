@@ -1,8 +1,170 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
+
+    var autenticado = User.Identity?.IsAuthenticated == true;
+
+    // Accesos rapidos segun el rol (los modulos salen del informe: RF-01 a RF-15).
+    // Url = null significa que ese modulo todavia no esta construido: se muestra como "Proximamente".
+    // Cuando un companero termine su modulo, solo cambia el null por la ruta, por ejemplo "/Ipress".
+    var accesos = new List<(string Titulo, string Texto, string? Url)>();
+
+    if (User.IsInRole("Administrador"))
+    {
+        accesos.Add(("Especialidades", "Crear, editar y desactivar las especialidades médicas.", "/Especialidades"));
+        accesos.Add(("IPRESS", "Gestionar los establecimientos de salud (RF-03).", null));
+        accesos.Add(("Doctores y horarios", "Registrar doctores, su contrato y su horario (RF-04, RF-06).", null));
+        accesos.Add(("Dashboards y auditoría", "Estadísticas y registro de operaciones (RF-15).", null));
+    }
+    if (User.IsInRole("Admision"))
+    {
+        accesos.Add(("Registrar paciente", "Registro presencial validando el DNI físico (RF-02).", null));
+        accesos.Add(("Asignar cita presencial", "Reservar una cita para un paciente en ventanilla (RF-09).", null));
+        accesos.Add(("Estado de las citas", "Marcar Asistido, Cancelado o Faltó (RF-10).", null));
+    }
+    if (User.IsInRole("Doctor"))
+    {
+        accesos.Add(("Mi agenda", "Ver las citas pendientes de mi horario (RF-12).", null));
+        accesos.Add(("Registrar atención", "Observaciones y receta de la cita en curso (RF-13).", null));
+        accesos.Add(("Historial clínico", "Consultar las atenciones anteriores del paciente (RF-14).", null));
+    }
+    if (User.IsInRole("Paciente"))
+    {
+        accesos.Add(("Reservar cita", "Elegir especialidad, doctor y fecha (RF-07).", null));
+        accesos.Add(("Mis citas", "Ver mis citas y su estado.", null));
+        accesos.Add(("Mi porcentaje de importancia", "Ver mi puntaje de prioridad (RF-08).", null));
+    }
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@* Pantalla de inicio. Todo el texto sale del informe (problema, objetivos y requisitos);
+   no se agregan funciones nuevas. Alto contraste y letra grande por RNF-04. *@
+
+<style>
+    .inicio-hero {
+        background: #0b3d91;          /* azul oscuro: contraste alto con el texto blanco */
+        color: #ffffff;
+        border-radius: 1rem;
+    }
+    .inicio-hero .lead { color: #e8f0ff; }
+    .inicio-paso {
+        width: 3rem; height: 3rem;
+        border-radius: 50%;
+        background: #0b3d91; color: #fff;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; font-weight: 700;
+    }
+    .inicio-card { border: 2px solid #212529; }
+    .inicio-card-off { border: 2px dashed #6c757d; background: #f8f9fa; }
+</style>
+
+<section class="inicio-hero p-4 p-md-5 mb-5 text-center">
+    <h1 class="display-5 fw-bold">Gestión de Citas Médicas IPRESS</h1>
+    <p class="lead fs-4 mx-auto mb-4" style="max-width: 800px;">
+        Reserve su cita en los establecimientos de salud de La Libertad.
+        Los pacientes que asisten a sus citas tienen prioridad cuando los cupos son limitados.
+    </p>
+
+    @if (!autenticado)
+    {
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a asp-controller="Auth" asp-action="Login" class="btn btn-light btn-lg px-5 fw-bold">Iniciar sesión</a>
+            <a asp-controller="Auth" asp-action="Register" class="btn btn-outline-light btn-lg px-5">Crear mi cuenta de paciente</a>
+        </div>
+    }
+    else
+    {
+        <p class="fs-4 mb-0">Bienvenido, <strong>@User.Identity!.Name</strong></p>
+    }
+</section>
+
+@if (autenticado)
+{
+    <section class="mb-5">
+        <h2 class="h3 mb-3">Sus accesos</h2>
+
+        @if (accesos.Count == 0)
+        {
+            <div class="alert alert-secondary fs-5">Su cuenta aún no tiene módulos asignados.</div>
+        }
+
+        <div class="row g-3">
+            @foreach (var a in accesos)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    @if (a.Url != null)
+                    {
+                        <a href="@a.Url" class="text-decoration-none text-dark">
+                            <div class="card inicio-card h-100">
+                                <div class="card-body">
+                                    <h3 class="h5">@a.Titulo</h3>
+                                    <p class="mb-0">@a.Texto</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="card inicio-card-off h-100">
+                            <div class="card-body">
+                                <h3 class="h5 text-secondary">@a.Titulo <span class="badge bg-secondary ms-1">Próximamente</span></h3>
+                                <p class="mb-0 text-secondary">@a.Texto</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+}
+else
+{
+    <section class="mb-5">
+        <h2 class="h3 text-center mb-4">¿Cómo funciona?</h2>
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <span class="inicio-paso mb-3">1</span>
+                <h3 class="h5">Cree su cuenta</h3>
+                <p class="fs-5">Regístrese con su DNI. Todo paciente nuevo empieza con 100% de importancia.</p>
+            </div>
+            <div class="col-md-4">
+                <span class="inicio-paso mb-3">2</span>
+                <h3 class="h5">Busque su cita</h3>
+                <p class="fs-5">Elija la especialidad, el doctor y la fecha con cupos disponibles.</p>
+            </div>
+            <div class="col-md-4">
+                <span class="inicio-paso mb-3">3</span>
+                <h3 class="h5">Asista y conserve su prioridad</h3>
+                <p class="fs-5">Si falta a una cita, su porcentaje de importancia disminuye.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="h3 text-center mb-4">¿Qué ofrece el sistema?</h2>
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <div class="card inicio-card h-100"><div class="card-body">
+                    <h3 class="h5">Prioridad para pacientes responsables</h3>
+                    <p class="mb-0">Los cupos limitados se asignan según el porcentaje de importancia de cada paciente.</p>
+                </div></div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card inicio-card h-100"><div class="card-body">
+                    <h3 class="h5">Médicos habilitados</h3>
+                    <p class="mb-0">Se controla la habilitación profesional del doctor y su horario según su tipo de contrato.</p>
+                </div></div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card inicio-card h-100"><div class="card-body">
+                    <h3 class="h5">Atención presencial en admisión</h3>
+                    <p class="mb-0">Si no tiene internet, el personal de admisión puede registrarlo y asignarle su cita en ventanilla.</p>
+                </div></div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card inicio-card h-100"><div class="card-body">
+                    <h3 class="h5">Atención y receta digital</h3>
+                    <p class="mb-0">El doctor registra las observaciones y la receta de su cita, y consulta el historial del paciente.</p>
+                </div></div>
+            </div>
+        </div>
+    </section>
+}
