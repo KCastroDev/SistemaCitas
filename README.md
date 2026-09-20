@@ -119,7 +119,7 @@ Flujo: **Controlador → Servicio → Repositorio → Base de datos**.
 | CU-07 | Gestionar estado de cita ("Asistió" / "Faltó" / "Cancelar") | Implementado |
 | CU-08 | Cita presencial (con verificación de DNI físico) | Implementado |
 | CU-09 | Consultorio del doctor: agenda, registro de atención con receta e historial clínico | Implementado |
-| CU-10 | Dashboard de estadísticas y auditoría de puntajes (Administrador) | Implementado (versión básica) |
+| CU-10 | Dashboard de estadísticas, usuarios activos y auditoría (Administrador) | Implementado |
 
 ### Reglas del informe implementadas
 
@@ -130,6 +130,9 @@ Flujo: **Controlador → Servicio → Repositorio → Base de datos**.
 - **RF-11:** cada inasistencia ("Faltó") resta 20 puntos a la importancia del paciente y queda registrada en `HistorialPuntaje` (quién, cuándo y motivo).
 - Un cupo no se puede reservar dos veces: hay un índice único en base de datos y el sistema controla la reserva simultánea de un mismo cupo.
 - **RF-12 / RF-13 / RF-14:** el doctor ve solo las citas de su propia agenda, registra la atención (triaje, diagnóstico CIE-10 y receta) y consulta el historial clínico solo de pacientes que tienen o tuvieron una cita con él. Al atender, la cita queda como Asistido.
+- **RNF-01 (auditoría):** los cambios críticos (registrar doctor, validar CMP, activar o desactivar doctor, horarios, agendar o cambiar el estado de una cita y registrar una atención) quedan en la tabla `AUDITORIA` con el usuario, la fecha y el valor anterior y nuevo. El Administrador los ve en **Dashboard**.
+- **RF-15:** el Dashboard muestra estadísticas, la auditoría de puntajes y la auditoría general, y la pantalla **Usuarios activos** lista las cuentas habilitadas con su rol.
+- **RNF-03 (JSON):** endpoints para integración, con sesión de Administrador o Admisión: `GET /api/doctores`, `GET /api/doctores/{id}/cupos?fecha=2026-09-21` y `GET /api/cmp/{cmp}` (habilitación del CMP, simulada). La consulta del CMP está aislada en `CmpIntegrationService`: cuando exista la API real del Colegio Médico, solo se cambia esa clase.
 - Cada pantalla está protegida por rol (`[Authorize]`); el paciente solo puede ver y cancelar sus propias citas.
 
 ## Flujo de trabajo del equipo

@@ -16,6 +16,7 @@ public class CitaService : ICitaService
     private readonly IRepositorio<Especialidad> _especialidades;
     private readonly IRepositorio<HistorialPuntaje> _historial;
     private readonly IPrioridadService _prioridad;
+    private readonly IAuditoriaService _auditoria;
 
     public CitaService(
         ICitaRepositorio citas,
@@ -23,7 +24,8 @@ public class CitaService : ICitaService
         IRepositorio<Paciente> pacientes,
         IRepositorio<Especialidad> especialidades,
         IRepositorio<HistorialPuntaje> historial,
-        IPrioridadService prioridad)
+        IPrioridadService prioridad,
+        IAuditoriaService auditoria)
     {
         _citas = citas;
         _doctores = doctores;
@@ -31,7 +33,11 @@ public class CitaService : ICitaService
         _especialidades = especialidades;
         _historial = historial;
         _prioridad = prioridad;
+        _auditoria = auditoria;
     }
+
+    public Task<List<CupoDto>> ObtenerCuposAsync(int idDoctor, DateOnly fecha) =>
+        BuscarCuposAsync(idDoctor, fecha, 100m, false);
 
     public Task<Paciente?> ObtenerPacienteAsync(int idPaciente) => _pacientes.ObtenerPorIdAsync(idPaciente);
 
@@ -263,6 +269,10 @@ public class CitaService : ICitaService
             return ResultadoOperacion.Falla("Ese cupo acaba de ser tomado por otro paciente. Elija otro horario.");
         }
 
+        var guardada = await _citas.ObtenerPorCupoAsync(idDoctor, fecha, hora);
+        await _auditoria.RegistrarAsync("Cita", "Crear", guardada?.IdCita.ToString(), null,
+            $"Paciente {idPaciente}, doctor {idDoctor}, {fecha:dd/MM/yyyy} {hora:HH:mm}, canal {canal}");
+
         return ResultadoOperacion.Ok();
     }
 
@@ -280,6 +290,9 @@ public class CitaService : ICitaService
 
         cita.Estado = EstadoCita.Cancelado;
         await _citas.GuardarCambiosAsync();
+
+        await _auditoria.RegistrarAsync("Cita", "Editar", cita.IdCita.ToString(),
+            "Estado: Pendiente", "Estado: Cancelado (por el paciente)");
         return ResultadoOperacion.Ok();
     }
 
@@ -298,6 +311,7 @@ public class CitaService : ICitaService
         if ((nuevoEstado == EstadoCita.Asistido || nuevoEstado == EstadoCita.Falto) && cita.FechaCita > hoy)
             return ResultadoOperacion.Falla("Solo se puede marcar Asistió o Faltó desde el día de la cita.");
 
+        var estadoAnterior = cita.Estado;
         cita.Estado = nuevoEstado;
 
         if (nuevoEstado == EstadoCita.Asistido)
@@ -323,6 +337,9 @@ public class CitaService : ICitaService
         }
 
         await _citas.GuardarCambiosAsync();
+
+        await _auditoria.RegistrarAsync("Cita", "Editar", cita.IdCita.ToString(),
+            $"Estado: {estadoAnterior}", $"Estado: {nuevoEstado}");
         return ResultadoOperacion.Ok();
     }
 }

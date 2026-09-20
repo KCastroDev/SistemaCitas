@@ -1,4 +1,6 @@
-﻿using SistemaCitas.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SistemaCitas.Models;
 using SistemaCitas.Repositories;
 using SistemaCitas.ViewModels;
 
@@ -13,19 +15,25 @@ public class DashboardService : IDashboardService
     private readonly IRepositorio<Ipress> _ipress;
     private readonly IRepositorio<Cita> _citas;
     private readonly IHistorialPuntajeRepositorio _historial;
+    private readonly IAuditoriaService _auditoria;
+    private readonly UserManager<Usuario> _userManager;
 
     public DashboardService(
         IRepositorio<Paciente> pacientes,
         IRepositorio<Doctor> doctores,
         IRepositorio<Ipress> ipress,
         IRepositorio<Cita> citas,
-        IHistorialPuntajeRepositorio historial)
+        IHistorialPuntajeRepositorio historial,
+        IAuditoriaService auditoria,
+        UserManager<Usuario> userManager)
     {
         _pacientes = pacientes;
         _doctores = doctores;
         _ipress = ipress;
         _citas = citas;
         _historial = historial;
+        _auditoria = auditoria;
+        _userManager = userManager;
     }
 
     public async Task<DashboardViewModel> ObtenerAsync()
@@ -45,6 +53,7 @@ public class DashboardService : IDashboardService
             TotalDoctores = doctores.Count,
             DoctoresHabilitados = doctores.Count(d => d.EstadoHabilitacion == "Habilitado"),
             TotalIpress = ipress.Count,
+            TotalUsuariosActivos = await _userManager.Users.CountAsync(u => u.Activo),
 
             CitasPendientes = citas.Count(c => c.Estado == EstadoCita.Pendiente),
             CitasAsistidas = asistidas,
@@ -64,7 +73,30 @@ public class DashboardService : IDashboardService
 
             TasaInasistencia = (asistidas + faltas) == 0 ? 0m : Math.Round(faltas * 100m / (asistidas + faltas), 1),
 
-            Auditoria = await _historial.UltimosAsync(CantidadAuditoria)
+            Auditoria = await _historial.UltimosAsync(CantidadAuditoria),
+            AuditoriaGeneral = await _auditoria.UltimosAsync(CantidadAuditoria)
         };
+    }
+
+    public async Task<UsuariosActivosViewModel> ListarUsuariosActivosAsync()
+    {
+        var usuarios = await _userManager.Users
+            .Where(u => u.Activo)
+            .OrderBy(u => u.Nombres)
+            .ToListAsync();
+
+        var filas = new List<UsuarioFila>();
+        foreach (var u in usuarios)
+        {
+            var roles = await _userManager.GetRolesAsync(u);
+            filas.Add(new UsuarioFila
+            {
+                Nombre = u.Nombres,
+                Correo = u.Email ?? u.UserName ?? "-",
+                Rol = roles.Count == 0 ? "Sin rol" : string.Join(", ", roles)
+            });
+        }
+
+        return new UsuariosActivosViewModel { Usuarios = filas };
     }
 }

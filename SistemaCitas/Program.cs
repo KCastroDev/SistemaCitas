@@ -30,6 +30,10 @@ builder.Services.AddScoped<IHistorialPuntajeRepositorio, HistorialPuntajeReposit
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IAtencionRepositorio, AtencionRepositorio>();
 builder.Services.AddScoped<IConsultorioService, ConsultorioService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditoriaRepositorio, AuditoriaRepositorio>();
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
+builder.Services.AddScoped<ICmpIntegrationService, CmpIntegrationService>();
 
 builder.Services.AddDefaultIdentity<Usuario>(o =>
 {

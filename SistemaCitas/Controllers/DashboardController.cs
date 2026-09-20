@@ -22,4 +22,12 @@ public class DashboardController : Controller
         var modelo = await _dashboard.ObtenerAsync();
         return View(modelo);
     }
+
+    // RF-15: usuarios activos con su rol
+    [HttpGet]
+    public async Task<IActionResult> Usuarios()
+    {
+        var modelo = await _dashboard.ListarUsuariosActivosAsync();
+        return View(modelo);
+    }
 }
