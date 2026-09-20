@@ -1,0 +1,147 @@
+﻿@model SistemaCitas.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Registro de paciente";
+}
+
+@* Vista de registro de pacientes (CU-02 / RF-01).
+   - Alto contraste y letra grande (RNF-04): inputs form-control-lg y etiquetas fs-5.
+   - Los menus de Plan de seguro y Distrito vienen de la base de datos (los llena AuthController).
+   - El checkbox de terminos cumple con la Ley 29733 (RC-01). *@
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm border-dark">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-2 text-center">Registro de paciente</h1>
+                <p class="text-center text-muted mb-4">Complete sus datos para crear su cuenta y poder reservar citas.</p>
+
+                <form asp-controller="Auth" asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <h2 class="h5 border-bottom pb-2 mb-3">Datos personales</h2>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Dni" class="form-label fs-5"></label>
+                            <input asp-for="Dni" class="form-control form-control-lg" maxlength="8" inputmode="numeric" />
+                            <span asp-validation-for="Dni" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label asp-for="Nombres" class="form-label fs-5"></label>
+                            <input asp-for="Nombres" class="form-control form-control-lg" />
+                            <span asp-validation-for="Nombres" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoPaterno" class="form-label fs-5"></label>
+                            <input asp-for="ApellidoPaterno" class="form-control form-control-lg" />
+                            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoMaterno" class="form-label fs-5"></label>
+                            <input asp-for="ApellidoMaterno" class="form-control form-control-lg" />
+                            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="FechaNacimiento" class="form-label fs-5"></label>
+                            <input asp-for="FechaNacimiento" type="date" class="form-control form-control-lg" />
+                            <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Sexo" class="form-label fs-5"></label>
+                            <select asp-for="Sexo" class="form-select form-select-lg">
+                                <option value="">-- Seleccione --</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                            <span asp-validation-for="Sexo" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Telefono" class="form-label fs-5"></label>
+                            <input asp-for="Telefono" class="form-control form-control-lg" maxlength="9" inputmode="numeric" />
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdPlanSeguro" class="form-label fs-5"></label>
+                            <select asp-for="IdPlanSeguro" asp-items="Model.PlanesSeguro" class="form-select form-select-lg">
+                                <option value="">-- Seleccione --</option>
+                            </select>
+                            <span asp-validation-for="IdPlanSeguro" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdDistrito" class="form-label fs-5"></label>
+                            <select asp-for="IdDistrito" asp-items="Model.Distritos" class="form-select form-select-lg">
+                                <option value="">-- Seleccione --</option>
+                            </select>
+                            <span asp-validation-for="IdDistrito" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <h2 class="h5 border-bottom pb-2 mb-3 mt-3">Datos de la cuenta</h2>
+
+                    <div class="mb-3">
+                        <label asp-for="Correo" class="form-label fs-5"></label>
+                        <input asp-for="Correo" class="form-control form-control-lg" autocomplete="username" />
+                        <span asp-validation-for="Correo" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-1">
+                            <label asp-for="Contrasena" class="form-label fs-5"></label>
+                            <input asp-for="Contrasena" class="form-control form-control-lg" autocomplete="new-password" />
+                            <span asp-validation-for="Contrasena" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-1">
+                            <label asp-for="ConfirmarContrasena" class="form-label fs-5"></label>
+                            <input asp-for="ConfirmarContrasena" class="form-control form-control-lg" autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmarContrasena" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-text mb-3">
+                        La contraseña debe tener mínimo 8 caracteres, con al menos una mayúscula, una minúscula y un número.
+                    </div>
+
+                    <div class="alert alert-secondary" role="note">
+                        <strong>Protección de datos personales (Ley 29733):</strong>
+                        sus datos se usarán únicamente para gestionar sus citas médicas y su atención en el
+                        establecimiento de salud. No serán compartidos con terceros sin su autorización.
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="AceptaTerminos" class="form-check-input" />
+                        <label asp-for="AceptaTerminos" class="form-check-label"></label>
+                        <div><span asp-validation-for="AceptaTerminos" class="text-danger"></span></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Crear mi cuenta</button>
+                </form>
+
+                <p class="text-center mt-3 mb-0">
+                    ¿Ya tiene una cuenta? <a asp-controller="Auth" asp-action="Login">Inicie sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    @* Regla del navegador para la casilla "Acepto los terminos":
+       solo es valida si la casilla esta marcada (ver DebeSerVerdaderoAttribute.cs) *@
+    <script>
+        $.validator.addMethod("debeserverdadero", function (value, element) {
+            return element.checked;
+        });
+        $.validator.unobtrusive.adapters.addBool("debeserverdadero");
+    </script>
+}

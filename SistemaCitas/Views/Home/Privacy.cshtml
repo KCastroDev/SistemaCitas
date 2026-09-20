@@ -1,6 +1,35 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacidad y protección de datos";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+@* Texto base de la Ley 29733 (Proteccion de Datos Personales), restriccion RC-01 del informe.
+   El equipo puede ajustar la redaccion final. *@
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <h1 class="mb-4">@ViewData["Title"]</h1>
+
+        <p class="fs-5">
+            El sistema <strong>Gestión de Citas Médicas IPRESS</strong> trata los datos personales de sus usuarios
+            conforme a la Ley N.° 29733, Ley de Protección de Datos Personales.
+        </p>
+
+        <h2 class="h4 mt-4">¿Qué datos se registran?</h2>
+        <p class="fs-5">
+            DNI, nombres y apellidos, fecha de nacimiento, sexo, teléfono (opcional), plan de seguro, distrito,
+            correo electrónico y datos de sus citas y atenciones médicas.
+        </p>
+
+        <h2 class="h4 mt-4">¿Para qué se usan?</h2>
+        <p class="fs-5">
+            Únicamente para gestionar sus citas médicas y su atención en el establecimiento de salud,
+            incluido el cálculo de su porcentaje de importancia para asignar cupos.
+        </p>
+
+        <h2 class="h4 mt-4">¿Quién puede verlos?</h2>
+        <p class="fs-5">
+            Solo el personal autorizado según su rol (administración, admisión y doctores).
+            Las contraseñas se guardan cifradas y no pueden ser vistas por nadie.
+        </p>
+    </div>
+</div>

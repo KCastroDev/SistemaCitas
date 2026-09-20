@@ -5,7 +5,7 @@ using SistemaCitas.Repositories;
 
 namespace SistemaCitas.Controllers;
 
-// [Authorize(Roles = "Administrador")]   // TODO: reactivar cuando este lista la autenticacion
+[Authorize(Roles = "Administrador")]   // solo el Administrador entra; si no inicio sesion, lo manda al Login
 public class EspecialidadesController : Controller
 {
     // El controlador ya NO conoce el DbContext: solo habla con el repositorio.
