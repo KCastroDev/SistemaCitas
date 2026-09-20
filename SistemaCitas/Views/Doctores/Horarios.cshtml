@@ -1,0 +1,106 @@
+﻿@model SistemaCitas.ViewModels.HorariosDoctorViewModel
+@{
+    var d = Model.Doctor;
+    ViewData["Title"] = "Horarios";
+    var dias = new[] { "", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" };
+    var asignadas = Model.HorasAsignadas;
+    var permitidas = Model.HorasPermitidas;
+    var porcentaje = permitidas == 0 ? 0 : Math.Min(100, (int)Math.Round(asignadas * 100 / permitidas));
+    var horarios = d.Horarios.Where(h => h.Activo).OrderBy(h => h.DiaSemana).ThenBy(h => h.HoraInicio).ToList();
+}
+
+<h1>Horarios</h1>
+<p class="mb-1"><strong>@d.ApellidoPaterno @d.ApellidoMaterno, @d.Nombres</strong> &middot; CMP @d.Cmp</p>
+<p class="text-muted">
+    @d.Ipress.Nombre &middot; @string.Join(", ", d.DoctorEspecialidades.Select(de => de.Especialidad.Nombre)) &middot;
+    Contrato <strong>@d.TipoContrato.Nombre</strong>
+    <span class="badge @(d.EstadoHabilitacion == "Habilitado" ? "bg-success" : "bg-secondary")">@d.EstadoHabilitacion</span>
+</p>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success">@TempData["Mensaje"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="mb-4" style="max-width: 720px;">
+    <div class="d-flex justify-content-between">
+        <span>Horas semanales asignadas (RC-02)</span>
+        <span><strong>@asignadas.ToString("0.##") h</strong> de @permitidas h permitidas por su contrato</span>
+    </div>
+    <div class="progress" role="progressbar" aria-valuenow="@porcentaje" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar @(porcentaje >= 100 ? "bg-danger" : "bg-primary")" style="width: @porcentaje%">@porcentaje%</div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h5>Horario semanal</h5>
+        <table class="table table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Día</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Cupos/hora</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var h in horarios)
+                {
+                    <tr>
+                        <td>@dias[h.DiaSemana]</td>
+                        <td>@h.HoraInicio.ToString("HH:mm")</td>
+                        <td>@h.HoraFin.ToString("HH:mm")</td>
+                        <td>@h.CuposPorHora</td>
+                        <td class="text-end">
+                            <form asp-action="QuitarHorario" asp-route-id="@d.IdDoctor" asp-route-idHorario="@h.IdHorario" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!horarios.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Este doctor aún no tiene horarios.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-lg-5">
+        <h5>Agregar bloque</h5>
+        <form asp-action="AgregarHorario" asp-route-id="@d.IdDoctor" method="post">
+            <div class="mb-3">
+                <label asp-for="Nuevo.DiaSemana" class="form-label"></label>
+                <select asp-for="Nuevo.DiaSemana" class="form-select">
+                    @for (var i = 1; i <= 7; i++)
+                    {
+                        <option value="@i">@dias[i]</option>
+                    }
+                </select>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label asp-for="Nuevo.HoraInicio" class="form-label"></label>
+                    <input asp-for="Nuevo.HoraInicio" type="time" class="form-control" />
+                </div>
+                <div class="col-6">
+                    <label asp-for="Nuevo.HoraFin" class="form-label"></label>
+                    <input asp-for="Nuevo.HoraFin" type="time" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Nuevo.CuposPorHora" class="form-label"></label>
+                <input asp-for="Nuevo.CuposPorHora" type="number" min="1" max="10" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Agregar horario</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+            <div class="form-text mt-2">Horario de atención de 06:00 a 22:00. Cada bloque dura al menos 1 hora.</div>
+        </form>
+    </div>
+</div>

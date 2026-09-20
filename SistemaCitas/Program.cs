@@ -18,6 +18,8 @@ builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
 builder.Services.AddScoped<IEspecialidadRepositorio, EspecialidadRepositorio>();
 builder.Services.AddScoped<IIpressRepository, IpressRepository>();
 builder.Services.AddScoped<IIpressService, IpressService>();
+builder.Services.AddScoped<IDoctorRepositorio, DoctorRepositorio>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 // Servicios (capa de reglas de negocio)
 builder.Services.AddScoped<IPacienteService, PacienteService>();
