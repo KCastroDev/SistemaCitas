@@ -118,7 +118,7 @@ Flujo: **Controlador → Servicio → Repositorio → Base de datos**.
 | CU-06 | Agendar cita web con prioridad | Implementado |
 | CU-07 | Gestionar estado de cita ("Asistió" / "Faltó" / "Cancelar") | Implementado |
 | CU-08 | Cita presencial (con verificación de DNI físico) | Implementado |
-| CU-09 | Registrar atención en consultorio | Pendiente (siguiente fase) |
+| CU-09 | Consultorio del doctor: agenda, registro de atención con receta e historial clínico | Implementado |
 | CU-10 | Dashboard de estadísticas y auditoría de puntajes (Administrador) | Implementado (versión básica) |
 
 ### Reglas del informe implementadas
@@ -129,6 +129,7 @@ Flujo: **Controlador → Servicio → Repositorio → Base de datos**.
 - **RF-08 (prioridad):** con importancia de 80 % o más el paciente puede reservar cualquier cupo, incluso para hoy; con menos de 80 % solo cupos con 3 días o más de anticipación; con menos de 50 % queda bloqueado para reservar por la web.
 - **RF-11:** cada inasistencia ("Faltó") resta 20 puntos a la importancia del paciente y queda registrada en `HistorialPuntaje` (quién, cuándo y motivo).
 - Un cupo no se puede reservar dos veces: hay un índice único en base de datos y el sistema controla la reserva simultánea de un mismo cupo.
+- **RF-12 / RF-13 / RF-14:** el doctor ve solo las citas de su propia agenda, registra la atención (triaje, diagnóstico CIE-10 y receta) y consulta el historial clínico solo de pacientes que tienen o tuvieron una cita con él. Al atender, la cita queda como Asistido.
 - Cada pantalla está protegida por rol (`[Authorize]`); el paciente solo puede ver y cancelar sus propias citas.
 
 ## Flujo de trabajo del equipo

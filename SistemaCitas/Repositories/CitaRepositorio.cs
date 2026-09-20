@@ -43,4 +43,20 @@ public class CitaRepositorio : Repositorio<Cita>, ICitaRepositorio
             .Include(c => c.Doctor)
             .Include(c => c.Ipress)
             .FirstOrDefaultAsync(c => c.IdCita == idCita);
+
+    public async Task<IEnumerable<Cita>> ListarPorDoctorAsync(int idDoctor, DateOnly fecha) =>
+        await _dbSet.AsNoTracking()
+            .Include(c => c.Paciente)
+            .Include(c => c.AtencionMedica)
+            .Where(c => c.IdDoctor == idDoctor && c.FechaCita == fecha
+                        && c.Estado != EstadoCita.Cancelado && c.Estado != EstadoCita.Falto)
+            .OrderBy(c => c.HoraCita)
+            .ToListAsync();
+
+    public async Task<Cita?> ObtenerParaAtencionAsync(int idCita) =>
+        await _dbSet
+            .Include(c => c.Paciente)
+            .Include(c => c.Triaje)
+            .Include(c => c.AtencionMedica)
+            .FirstOrDefaultAsync(c => c.IdCita == idCita);
 }

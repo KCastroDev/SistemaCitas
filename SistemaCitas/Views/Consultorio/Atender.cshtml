@@ -1,0 +1,225 @@
+﻿@model SistemaCitas.ViewModels.AtencionViewModel
+@{
+    ViewData["Title"] = "Registrar atención";
+    var p = Model.Paciente;
+    var c = Model.Cita;
+    var edad = 0;
+    if (p != null)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Today);
+        edad = hoy.Year - p.FechaNacimiento.Year;
+        if (p.FechaNacimiento.AddYears(edad) > hoy) { edad--; }
+    }
+}
+
+<h1 class="mb-3">Registrar atención</h1>
+
+@if (p != null && c != null)
+{
+    <div class="alert alert-info fs-5">
+        <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; DNI @p.Dni &middot; @edad años &middot; @(p.Sexo == "M" ? "Masculino" : "Femenino")<br />
+        Cita del @c.FechaCita.ToString("dd/MM/yyyy") a las @c.HoraCita.ToString("HH:mm")
+        <a asp-action="Historial" asp-route-idPaciente="@p.IdPaciente" class="ms-2">Ver historial clínico</a>
+    </div>
+}
+
+<div asp-validation-summary="All" class="alert alert-danger"></div>
+
+<form asp-action="Atender" method="post">
+    <input type="hidden" asp-for="IdCita" />
+
+    <h2 class="h4">1. Triaje</h2>
+    <p class="text-muted">Solo se permiten números. Cada campo indica su rango válido.</p>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4">
+            <label asp-for="PesoKg" class="form-label fw-bold"></label>
+            <input asp-for="PesoKg" type="text" inputmode="numeric" maxlength="3" autocomplete="off"
+                   class="form-control form-control-lg solo-digitos" placeholder="Ej. 70" />
+            <div class="form-text">Entre 1 y 300 kg (hasta 3 dígitos)</div>
+            <span asp-validation-for="PesoKg" class="text-danger"></span>
+        </div>
+        <div class="col-6 col-md-4">
+            <label asp-for="TallaCm" class="form-label fw-bold"></label>
+            <input asp-for="TallaCm" type="text" inputmode="numeric" maxlength="3" autocomplete="off"
+                   class="form-control form-control-lg solo-digitos" placeholder="Ej. 165" />
+            <div class="form-text">Entre 30 y 250 cm (hasta 3 dígitos)</div>
+            <span asp-validation-for="TallaCm" class="text-danger"></span>
+        </div>
+        <div class="col-6 col-md-4">
+            <label asp-for="TemperaturaC" class="form-label fw-bold"></label>
+            <input asp-for="TemperaturaC" type="text" inputmode="decimal" maxlength="4" autocomplete="off"
+                   class="form-control form-control-lg solo-temperatura" placeholder="Ej. 36.5" />
+            <div class="form-text">Entre 30 y 45 °C (un decimal con punto)</div>
+            <span asp-validation-for="TemperaturaC" class="text-danger"></span>
+        </div>
+        <div class="col-12 col-md-4">
+            @{
+                var paPartes = (Model.PresionArterial ?? "").Split('/');
+                var paSis = paPartes.Length > 0 ? paPartes[0] : "";
+                var paDia = paPartes.Length > 1 ? paPartes[1] : "";
+            }
+            <label class="form-label fw-bold" for="paSis">Presión arterial (mmHg)</label>
+            <div class="input-group input-group-lg">
+                <input id="paSis" type="text" inputmode="numeric" maxlength="3" autocomplete="off"
+                       class="form-control solo-digitos text-center" placeholder="120" value="@paSis" aria-label="Presión sistólica" />
+                <span class="input-group-text">/</span>
+                <input id="paDia" type="text" inputmode="numeric" maxlength="3" autocomplete="off"
+                       class="form-control solo-digitos text-center" placeholder="80" value="@paDia" aria-label="Presión diastólica" />
+            </div>
+            <input asp-for="PresionArterial" type="hidden" />
+            <div class="form-text">Sistólica (60 a 260) / diastólica (30 a 160). Opcional.</div>
+            <span asp-validation-for="PresionArterial" class="text-danger"></span>
+        </div>
+        <div class="col-6 col-md-4">
+            <label asp-for="FrecuenciaCardiaca" class="form-label fw-bold"></label>
+            <input asp-for="FrecuenciaCardiaca" type="text" inputmode="numeric" maxlength="3" autocomplete="off"
+                   class="form-control form-control-lg solo-digitos" placeholder="Ej. 80" />
+            <div class="form-text">Entre 30 y 250 lpm. Opcional.</div>
+            <span asp-validation-for="FrecuenciaCardiaca" class="text-danger"></span>
+        </div>
+        <div class="col-6 col-md-4">
+            <label asp-for="SaturacionO2" class="form-label fw-bold"></label>
+            <input asp-for="SaturacionO2" type="text" inputmode="numeric" maxlength="3" autocomplete="off"
+                   class="form-control form-control-lg solo-digitos" placeholder="Ej. 98" />
+            <div class="form-text">Entre 50 y 100 %. Opcional.</div>
+            <span asp-validation-for="SaturacionO2" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h2 class="h4">2. Consulta</h2>
+    <div class="mb-3">
+        <label asp-for="MotivoConsulta" class="form-label fw-bold"></label>
+        <input asp-for="MotivoConsulta" list="motivos" maxlength="500" autocomplete="off"
+               class="form-control form-control-lg contador" data-contador="cntMotivo" placeholder="Elija una sugerencia o escriba el motivo" />
+        <datalist id="motivos">
+            <option value="Control médico de rutina"></option>
+            <option value="Dolor de cabeza"></option>
+            <option value="Fiebre"></option>
+            <option value="Dolor de garganta"></option>
+            <option value="Dolor abdominal"></option>
+            <option value="Tos"></option>
+            <option value="Control de embarazo"></option>
+            <option value="Control de niño sano"></option>
+        </datalist>
+        <div class="form-text"><span id="cntMotivo">0</span>/500 caracteres</div>
+        <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Sintomatologia" class="form-label fw-bold"></label>
+        <textarea asp-for="Sintomatologia" rows="5" maxlength="1000" class="form-control form-control-lg contador"
+                  data-contador="cntSint" placeholder="Describa los síntomas y padecimientos: desde cuándo, intensidad, antecedentes relevantes..."></textarea>
+        <div class="form-text"><span id="cntSint">0</span>/1000 caracteres</div>
+        <span asp-validation-for="Sintomatologia" class="text-danger"></span>
+    </div>
+    <div class="mb-4">
+        <label asp-for="Observaciones" class="form-label fw-bold"></label>
+        <textarea asp-for="Observaciones" rows="4" maxlength="1000" class="form-control form-control-lg contador"
+                  data-contador="cntObs" placeholder="Hallazgos del examen físico, recomendaciones, próxima cita..."></textarea>
+        <div class="form-text"><span id="cntObs">0</span>/1000 caracteres</div>
+        <span asp-validation-for="Observaciones" class="text-danger"></span>
+    </div>
+
+    <h2 class="h4">3. Diagnóstico</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-md-8">
+            <label asp-for="CodigoCie10" class="form-label fw-bold"></label>
+            <select asp-for="CodigoCie10" asp-items="Model.Diagnosticos" class="form-select form-select-lg">
+                <option value="">-- Elija --</option>
+            </select>
+            <span asp-validation-for="CodigoCie10" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="TipoDiagnostico" class="form-label fw-bold"></label>
+            <select asp-for="TipoDiagnostico" class="form-select form-select-lg">
+                <option value="D">Definitivo</option>
+                <option value="P">Presuntivo</option>
+                <option value="R">Repetitivo</option>
+            </select>
+            <span asp-validation-for="TipoDiagnostico" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h2 class="h4">4. Receta <small class="text-muted fs-6">(opcional, hasta 3 medicamentos)</small></h2>
+    <div class="table-responsive mb-4">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr><th style="width:35%">Medicamento</th><th style="width:12%">Cantidad</th><th>Indicaciones</th></tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < Model.Receta.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            <select asp-for="Receta[i].IdMedicamento" asp-items="Model.Medicamentos" class="form-select">
+                                <option value="">-- Ninguno --</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input asp-for="Receta[i].Cantidad" type="text" inputmode="numeric" maxlength="2" autocomplete="off"
+                                   class="form-control solo-digitos" placeholder="1 a 99" />
+                            <span asp-validation-for="Receta[i].Cantidad" class="text-danger"></span>
+                        </td>
+                        <td>
+                            <input asp-for="Receta[i].Indicaciones" list="indicaciones" maxlength="200" autocomplete="off"
+                                   class="form-control" placeholder="Elija una sugerencia o escriba: cada cuánto y por cuántos días" />
+                            <span asp-validation-for="Receta[i].Indicaciones" class="text-danger"></span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <datalist id="indicaciones">
+        <option value="1 tableta cada 8 horas por 5 días"></option>
+        <option value="1 tableta cada 12 horas por 7 días"></option>
+        <option value="1 tableta cada 24 horas por 30 días"></option>
+        <option value="1 cápsula cada 8 horas por 7 días"></option>
+        <option value="2 inhalaciones cada 6 horas si hay dificultad para respirar"></option>
+    </datalist>
+
+    <button type="submit" class="btn btn-success btn-lg">Guardar atención</button>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Campos numericos: solo digitos (sin letras, puntos, comas ni simbolos) y con tope de longitud.
+        document.querySelectorAll('.solo-digitos').forEach(function (el) {
+            el.addEventListener('input', function () {
+                var max = parseInt(el.getAttribute('maxlength') || '3', 10);
+                el.value = el.value.replace(/\D/g, '').slice(0, max);
+            });
+        });
+
+        // Temperatura: digitos y un solo punto decimal (la coma se convierte en punto).
+        document.querySelectorAll('.solo-temperatura').forEach(function (el) {
+            el.addEventListener('input', function () {
+                var v = el.value.replace(',', '.').replace(/[^\d.]/g, '');
+                var i = v.indexOf('.');
+                if (i >= 0) { v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, ''); }
+                el.value = v.slice(0, 4);
+            });
+        });
+
+        // Presion arterial: las dos cajas se unen como "120/80" en el campo oculto que se envia.
+        var paSis = document.getElementById('paSis');
+        var paDia = document.getElementById('paDia');
+        var paOculto = document.getElementById('PresionArterial');
+        function unirPresion() {
+            paOculto.value = (paSis.value || paDia.value) ? (paSis.value + '/' + paDia.value) : '';
+        }
+        paSis.addEventListener('input', unirPresion);
+        paDia.addEventListener('input', unirPresion);
+        unirPresion();
+
+        // Contadores de caracteres de los textos libres
+        document.querySelectorAll('.contador').forEach(function (el) {
+            var salida = document.getElementById(el.getAttribute('data-contador'));
+            function actualizar() { salida.textContent = el.value.length; }
+            el.addEventListener('input', actualizar);
+            actualizar();
+        });
+    </script>
+}
