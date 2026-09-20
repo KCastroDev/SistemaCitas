@@ -79,7 +79,7 @@ Al arrancar, el sistema crea automáticamente los roles y un usuario administrad
 
 Roles del sistema: `Administrador`, `Admision`, `Doctor`, `Paciente`.
 
-**Datos de demostración:** cuando la aplicación arranca en modo *Development* (F5 en Visual Studio), se cargan automáticamente 3 IPRESS, 9 doctores con sus horarios de lunes a sábado y 10 pacientes con distinto porcentaje de importancia (ver `Data/DatosDemo.cs`). No se duplican si ya existen. El último doctor (CMP terminado en 0) queda "No habilitado" para demostrar la validación del CMP.
+**Datos de demostración:** cuando la aplicación arranca en modo *Development* (F5 en Visual Studio), se cargan automáticamente 3 IPRESS, 9 doctores con sus horarios de lunes a domingo y 10 pacientes con distinto porcentaje de importancia (ver `Data/DatosDemo.cs`). No se duplican si ya existen. El último doctor (CMP terminado en 0) queda "No habilitado" para demostrar la validación del CMP.
 
 El correo y la contraseña del administrador inicial se pueden cambiar agregando en `appsettings.Development.json`:
 
@@ -119,14 +119,14 @@ Flujo: **Controlador → Servicio → Repositorio → Base de datos**.
 | CU-07 | Gestionar estado de cita ("Asistió" / "Faltó" / "Cancelar") | Implementado |
 | CU-08 | Cita presencial (con verificación de DNI físico) | Implementado |
 | CU-09 | Registrar atención en consultorio | Pendiente (siguiente fase) |
-| CU-10 | Dashboards y auditoría | Pendiente (siguiente fase) |
+| CU-10 | Dashboard de estadísticas y auditoría de puntajes (Administrador) | Implementado (versión básica) |
 
 ### Reglas del informe implementadas
 
 - **RC-02:** no se pueden programar horarios que superen las horas semanales del contrato (Honorarios 12 h, Part time 24 h, Full day 48 h), ni horarios que se crucen.
 - **RC-03:** para asignar una cita presencial, Admisión debe confirmar que verificó el DNI físico del paciente.
 - **RO-03 / RF-05:** la habilitación del CMP se valida de forma simulada; un doctor no habilitado no puede tener horarios ni recibir citas.
-- **RF-08 (prioridad):** con importancia de 80 % o más el paciente puede reservar cualquier cupo, incluso para hoy; con menos de 80 % solo cupos con 3 días o más de anticipación; con 50 % o menos queda bloqueado para reservar por la web.
+- **RF-08 (prioridad):** con importancia de 80 % o más el paciente puede reservar cualquier cupo, incluso para hoy; con menos de 80 % solo cupos con 3 días o más de anticipación; con menos de 50 % queda bloqueado para reservar por la web.
 - **RF-11:** cada inasistencia ("Faltó") resta 20 puntos a la importancia del paciente y queda registrada en `HistorialPuntaje` (quién, cuándo y motivo).
 - Un cupo no se puede reservar dos veces: hay un índice único en base de datos y el sistema controla la reserva simultánea de un mismo cupo.
 - Cada pantalla está protegida por rol (`[Authorize]`); el paciente solo puede ver y cancelar sus propias citas.
