@@ -71,7 +71,7 @@ Al arrancar, el sistema crea automáticamente los roles y un usuario administrad
 | Rol | Correo | Contraseña |
 |---|---|---|
 | Administrador | `admin@sistemacitas.pe` | `Admin2026` |
-| Doctor (demo) | `dr.ramirez@sistemacitas.pe`, `dra.torres@sistemacitas.pe`, `dr.castillo@sistemacitas.pe`, `dra.salazar@sistemacitas.pe`, `dr.mendoza@sistemacitas.pe`, `dra.paredes@sistemacitas.pe`, `dr.vargas@sistemacitas.pe`, `dra.diaz@sistemacitas.pe` | `Doctor2026` |
+| Doctor (demo) | `dr.ramirez@sistemacitas.pe`, `dra.torres@sistemacitas.pe`, `dr.castillo@sistemacitas.pe`, `dra.salazar@sistemacitas.pe`, `dr.mendoza@sistemacitas.pe`, `dra.paredes@sistemacitas.pe`, `dr.vargas@sistemacitas.pe`, `dra.diaz@sistemacitas.pe`, `dra.rios@sistemacitas.pe`, `dr.guzman@sistemacitas.pe`, `dra.herrera@sistemacitas.pe`, `dr.ruiz@sistemacitas.pe`, `dra.nunez@sistemacitas.pe`, `dr.salas@sistemacitas.pe`, `dra.ocana@sistemacitas.pe`, `dr.angulo@sistemacitas.pe`, `dra.cueva@sistemacitas.pe`, `dr.rojas@sistemacitas.pe` | `Doctor2026` |
 | Paciente (demo, 100 %) | `maria.quispe@correo.com` | `Paciente2026` |
 | Paciente (demo, 70 %) | `pedro.alarcon@correo.com` | `Paciente2026` |
 | Paciente (demo, 40 %, bloqueada) | `carmen.rojas@correo.com` | `Paciente2026` |
@@ -79,7 +79,7 @@ Al arrancar, el sistema crea automáticamente los roles y un usuario administrad
 
 Roles del sistema: `Administrador`, `Admision`, `Doctor`, `Paciente`.
 
-**Datos de demostración:** cuando la aplicación arranca en modo *Development* (F5 en Visual Studio), se cargan automáticamente 3 IPRESS, 9 doctores con sus horarios de lunes a domingo y 10 pacientes con distinto porcentaje de importancia (ver `Data/DatosDemo.cs`). No se duplican si ya existen. El último doctor (CMP terminado en 0) queda "No habilitado" para demostrar la validación del CMP.
+**Datos de demostración:** cuando la aplicación arranca en modo *Development* (F5 en Visual Studio), se cargan automáticamente 3 IPRESS, 19 doctores con horarios que cubren todos los días de 6:00 a 22:00 y 15 pacientes con distinto porcentaje de importancia (ver `Data/DatosDemo.cs`). No se duplican si ya existen. El doctor `dr.chavez@sistemacitas.pe` (CMP terminado en 0) queda "No habilitado" para demostrar la validación del CMP.
 
 El correo y la contraseña del administrador inicial se pueden cambiar agregando en `appsettings.Development.json`:
 
