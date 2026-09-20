@@ -20,20 +20,20 @@ public class DoctorViewModel
     public string Cmp { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese los nombres")]
-    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "Los nombres solo pueden tener letras y espacios")]
-    [StringLength(60, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 60 letras")]
+    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "Los nombres solo pueden tener letras y espacios (sin números ni signos)")]
+    [StringLength(30, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 30 letras")]
     [Display(Name = "Nombres")]
     public string Nombres { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese el apellido paterno")]
-    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "El apellido paterno solo puede tener letras y espacios")]
-    [StringLength(60, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 60 letras")]
+    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "El apellido paterno solo puede tener letras y espacios (sin números ni signos)")]
+    [StringLength(20, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 20 letras")]
     [Display(Name = "Apellido paterno")]
     public string ApellidoPaterno { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese el apellido materno")]
-    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "El apellido materno solo puede tener letras y espacios")]
-    [StringLength(60, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 60 letras")]
+    [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$", ErrorMessage = "El apellido materno solo puede tener letras y espacios (sin números ni signos)")]
+    [StringLength(20, MinimumLength = 2, ErrorMessage = "Debe tener entre 2 y 20 letras")]
     [Display(Name = "Apellido materno")]
     public string ApellidoMaterno { get; set; } = null!;
 

@@ -49,6 +49,29 @@ public static class DatosDemo
         // CMP que termina en 0: la validacion simulada lo marca "No habilitado" (RF-05). No se le crean horarios.
         new("41234509", "70120", "Roberto",  "Chávez",   "Ibáñez",  "dr.chavez@sistemacitas.pe",   2, 1, "Cirugia",
             Array.Empty<Bloque>()),
+
+        // ---- Doctores adicionales: junto con los anteriores cubren TODOS los dias de 6:00 a 22:00 ----
+        // Cada uno respeta las horas semanales de su contrato (RC-02): Honorarios 12 h, Part time 24 h, Full day 48 h.
+        new("41234510", "70131", "Sofía",    "Ríos",     "Alvarado","dra.rios@sistemacitas.pe",    0, 3, "Medicina General",
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 12, 18) }),                                // 42 h (mediodia)
+        new("41234511", "70132", "Andrés",   "Guzmán",   "Peña",    "dr.guzman@sistemacitas.pe",   2, 3, "Medicina General",
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 18, 22) }),                                // 28 h (noche)
+        new("41234512", "70133", "Carla",    "Herrera",  "Soto",    "dra.herrera@sistemacitas.pe", 2, 2, "Pediatria",
+            new[] { new Bloque(new[] {1,2,3,4,5,6}, 8, 12) }),                                   // 24 h
+        new("41234513", "70134", "Fernando", "Ruiz",     "Lara",    "dr.ruiz@sistemacitas.pe",     0, 3, "Cirugia",
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 14, 20) }),                                // 42 h
+        new("41234514", "70135", "Gabriela", "Núñez",    "Ponce",   "dra.nunez@sistemacitas.pe",   1, 2, "Ginecologia",
+            new[] { new Bloque(new[] {1,2,3,4,5,6}, 14, 18) }),                                  // 24 h
+        new("41234515", "70136", "Héctor",   "Salas",    "Montoya", "dr.salas@sistemacitas.pe",    1, 1, "Medicina General",
+            new[] { new Bloque(new[] {6,7}, 12, 18) }),                                          // 12 h (fin de semana)
+        new("41234516", "70137", "Milagros", "Ocaña",    "Benites", "dra.ocana@sistemacitas.pe",   2, 3, "Pediatria",
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 18, 22) }),                                // 28 h (noche)
+        new("41234517", "70138", "Víctor",   "Angulo",   "Meza",    "dr.angulo@sistemacitas.pe",   1, 2, "Cirugia",
+            new[] { new Bloque(new[] {1,2,3,4,5,6}, 8, 12) }),                                   // 24 h
+        new("41234518", "70139", "Daniela",  "Cueva",    "Rivas",   "dra.cueva@sistemacitas.pe",   0, 3, "Ginecologia",
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 8, 14) }),                                 // 42 h
+        new("41234519", "70141", "Elías",    "Rojas",    "Cano",    "dr.rojas@sistemacitas.pe",    0, 2, "Medicina General",
+            new[] { new Bloque(new[] {1,2,3,4,5,6,7}, 6, 8) }),                                  // 14 h (madrugada)
     };
 
     private static readonly PacienteDemo[] Pacientes =
@@ -63,6 +86,11 @@ public static class DatosDemo
         new("71000008", "Manuel",      "Sánchez",  "Ortiz",   new(1958, 2, 27), "M", "987000008", 1, "130105", 60m,  null),
         new("71000009", "Elena",       "Torres",   "Bazán",   new(1992, 8, 11), "F", "987000009", 3, "130109", 100m, null),
         new("71000010", "Diego",       "Cabrera",  "Lozano",  new(2008, 6, 3),  "M", "987000010", 2, "130101", 100m, null),
+        new("71000011", "Sofía",       "Mendoza",  "Rivas",   new(1999, 4, 18), "F", "987000011", 1, "130104", 100m, null),
+        new("71000012", "Carlos",      "Benites",  "Alva",    new(1975, 10, 8), "M", "987000012", 2, "130105", 80m,  null),
+        new("71000013", "Lucía",       "Fernández","Cueva",   new(2012, 2, 25), "F", "987000013", 3, "130109", 100m, null),
+        new("71000014", "Ricardo",     "Zavaleta", "Polo",    new(1962, 12, 1), "M", "987000014", 1, "130101", 100m, null),
+        new("71000015", "Milagros",    "Chávez",   "Torres",  new(1988, 7, 22), "F", "987000015", 2, "130104", 100m, null),
     };
 
     // Convierte el horario de demo en filas de HORARIO_DOCTOR
