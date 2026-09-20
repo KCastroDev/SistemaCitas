@@ -1,37 +1,63 @@
 ﻿@model SistemaCitas.ViewModels.LoginViewModel
 
 @{
-    ViewData["Title"] = "Iniciar sesión";
+    ViewData["Title"] = "Iniciar Sesión";
 }
 
-<div class="row justify-content-center">
-    <div class="col-12 col-md-6 col-lg-5">
-        <div class="card shadow-sm border-dark">
-            <div class="card-body p-4">
-                <h1 class="h3 mb-4 text-center">Iniciar sesión</h1>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-1 text-primary fw-bold">Sistema Citas</h2>
+                    <p class="text-center text-muted mb-4">Ingresa tus credenciales para continuar</p>
 
-                <form asp-controller="Auth" asp-action="Login" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    <div asp-validation-summary="All" class="alert alert-danger py-2 small mb-3" role="alert"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="Correo" class="form-label fs-5"></label>
-                        <input asp-for="Correo" class="form-control form-control-lg" autocomplete="username" />
-                        <span asp-validation-for="Correo" class="text-danger"></span>
+                    <form asp-action="Login" method="post" novalidate>
+                        <div class="mb-3">
+                            <label asp-for="Correo" class="form-label fw-semibold">
+                                @Html.DisplayNameFor(m => m.Correo) <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Correo"
+                                   class="form-control form-control-lg"
+                                   placeholder="ejemplo@correo.com"
+                                   autocomplete="email" />
+                            <span asp-validation-for="Correo" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Contrasena" class="form-label fw-semibold">
+                                @Html.DisplayNameFor(m => m.Contrasena) <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Contrasena"
+                                   class="form-control form-control-lg"
+                                   placeholder="••••••••"
+                                   autocomplete="current-password" />
+                            <span asp-validation-for="Contrasena" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input asp-for="Recordarme" class="form-check-input" />
+                                <label asp-for="Recordarme" class="form-check-label small">
+                                    @Html.DisplayNameFor(m => m.Recordarme)
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg fw-bold shadow-sm">
+                            Ingresar al Sistema
+                        </button>
+                    </form>
+
+                    <div class="mt-4 text-center border-top pt-3">
+                        <p class="small text-muted mb-0">
+                            ¿No tienes una cuenta?
+                            <a asp-action="Register" class="text-decoration-none fw-bold text-primary">Regístrate aquí</a>
+                        </p>
                     </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Contrasena" class="form-label fs-5"></label>
-                        <input asp-for="Contrasena" class="form-control form-control-lg" autocomplete="current-password" />
-                        <span asp-validation-for="Contrasena" class="text-danger"></span>
-                    </div>
-
-                    <div class="form-check mb-4">
-                        <input asp-for="Recordarme" class="form-check-input" />
-                        <label asp-for="Recordarme" class="form-check-label"></label>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg w-100">Ingresar</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
