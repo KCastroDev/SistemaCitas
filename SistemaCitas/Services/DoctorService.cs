@@ -18,6 +18,7 @@ public class DoctorService : IDoctorService
     private readonly IRepositorio<TipoContrato> _contratos;
     private readonly IRepositorio<Especialidad> _especialidades;
     private readonly UserManager<Usuario> _userManager;
+    private readonly IAuditoriaService _auditoria;
 
     public DoctorService(
         IDoctorRepositorio doctores,
@@ -25,7 +26,8 @@ public class DoctorService : IDoctorService
         IRepositorio<Ipress> ipress,
         IRepositorio<TipoContrato> contratos,
         IRepositorio<Especialidad> especialidades,
-        UserManager<Usuario> userManager)
+        UserManager<Usuario> userManager,
+        IAuditoriaService auditoria)
     {
         _doctores = doctores;
         _horarios = horarios;
@@ -33,6 +35,7 @@ public class DoctorService : IDoctorService
         _contratos = contratos;
         _especialidades = especialidades;
         _userManager = userManager;
+        _auditoria = auditoria;
     }
 
     public Task<IEnumerable<Doctor>> ListarAsync(string? buscar) => _doctores.ListarAsync(buscar);
@@ -122,6 +125,9 @@ public class DoctorService : IDoctorService
             return ResultadoOperacion.Falla("No se pudo guardar el doctor. Intente nuevamente.");
         }
 
+        await _auditoria.RegistrarAsync("Doctor", "Crear", vm.Cmp, null,
+            $"CMP {vm.Cmp} - {vm.Nombres} {vm.ApellidoPaterno} {vm.ApellidoMaterno}");
+
         return ResultadoOperacion.Ok();
     }
 
@@ -133,10 +139,14 @@ public class DoctorService : IDoctorService
         var doctor = await _doctores.ObtenerPorIdAsync(idDoctor);
         if (doctor == null) return ResultadoOperacion.Falla("El doctor no existe.");
 
-        var habilitado = !doctor.Cmp.EndsWith('0');
+        var estadoAnterior = doctor.EstadoHabilitacion;
+        var habilitado = CmpIntegrationService.EstaHabilitado(doctor.Cmp);
         doctor.EstadoHabilitacion = habilitado ? Habilitado : NoHabilitado;
         doctor.FechaValidacionCmp = DateTime.Now;
         await _doctores.GuardarCambiosAsync();
+
+        await _auditoria.RegistrarAsync("Doctor", "Editar", doctor.Cmp,
+            $"Habilitación: {estadoAnterior}", $"Habilitación: {doctor.EstadoHabilitacion}");
 
         return habilitado
             ? ResultadoOperacion.Ok()
@@ -149,8 +159,12 @@ public class DoctorService : IDoctorService
         var doctor = await _doctores.ObtenerPorIdAsync(idDoctor);
         if (doctor == null) return ResultadoOperacion.Falla("El doctor no existe.");
 
+        var activoAnterior = doctor.Activo;
         doctor.Activo = !doctor.Activo;
         await _doctores.GuardarCambiosAsync();
+
+        await _auditoria.RegistrarAsync("Doctor", "Editar", doctor.Cmp,
+            activoAnterior ? "Activo" : "Inactivo", doctor.Activo ? "Activo" : "Inactivo");
 
         if (doctor.UsuarioId != null)
         {
@@ -213,6 +227,9 @@ public class DoctorService : IDoctorService
         });
         await _horarios.GuardarCambiosAsync();
 
+        await _auditoria.RegistrarAsync("HorarioDoctor", "Crear", doctor.Cmp, null,
+            $"Día {vm.DiaSemana}, {inicio:HH:mm} a {fin:HH:mm}, {vm.CuposPorHora} cupos por hora");
+
         return ResultadoOperacion.Ok();
     }
 
@@ -223,6 +240,9 @@ public class DoctorService : IDoctorService
 
         _horarios.Eliminar(horario);
         await _horarios.GuardarCambiosAsync();
+
+        await _auditoria.RegistrarAsync("HorarioDoctor", "Eliminar", horario.IdHorario.ToString(),
+            $"Doctor {horario.IdDoctor}, día {horario.DiaSemana}, {horario.HoraInicio:HH:mm} a {horario.HoraFin:HH:mm}", null);
         return ResultadoOperacion.Ok();
     }
 

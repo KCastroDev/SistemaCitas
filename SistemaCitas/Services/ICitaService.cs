@@ -18,6 +18,9 @@ public interface ICitaService
     // RF-07 + RF-08 (web) / RF-09 (presencial)
     Task<ResultadoOperacion> AgendarAsync(int idPaciente, int idDoctor, DateOnly fecha, TimeOnly hora, string canal, bool dniVerificado = false);
 
+    // Cupos de un doctor en una fecha (los usa el endpoint JSON de integracion, RNF-03)
+    Task<List<CupoDto>> ObtenerCuposAsync(int idDoctor, DateOnly fecha);
+
     Task<IEnumerable<Cita>> ListarCitasPacienteAsync(int idPaciente);
     Task<IEnumerable<Cita>> ListarCitasPorFechaAsync(DateOnly fecha);
 

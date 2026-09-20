@@ -6,4 +6,7 @@ namespace SistemaCitas.Services;
 public interface IDashboardService
 {
     Task<DashboardViewModel> ObtenerAsync();
+
+    // RF-15: lista de usuarios activos con su rol
+    Task<UsuariosActivosViewModel> ListarUsuariosActivosAsync();
 }

@@ -16,6 +16,7 @@ public class ConsultorioService : IConsultorioService
     private readonly IRepositorio<Paciente> _pacientes;
     private readonly IRepositorio<Cie10> _cie10;
     private readonly IRepositorio<Medicamento> _medicamentos;
+    private readonly IAuditoriaService _auditoria;
 
     public ConsultorioService(
         ICitaRepositorio citas,
@@ -23,7 +24,8 @@ public class ConsultorioService : IConsultorioService
         IRepositorio<Doctor> doctores,
         IRepositorio<Paciente> pacientes,
         IRepositorio<Cie10> cie10,
-        IRepositorio<Medicamento> medicamentos)
+        IRepositorio<Medicamento> medicamentos,
+        IAuditoriaService auditoria)
     {
         _citas = citas;
         _atenciones = atenciones;
@@ -31,6 +33,7 @@ public class ConsultorioService : IConsultorioService
         _pacientes = pacientes;
         _cie10 = cie10;
         _medicamentos = medicamentos;
+        _auditoria = auditoria;
     }
 
     public async Task<Doctor?> ObtenerDoctorPorUsuarioAsync(string usuarioId)
@@ -205,6 +208,9 @@ public class ConsultorioService : IConsultorioService
         {
             return ResultadoOperacion.Falla("No se pudo guardar la atención. Es posible que esta cita ya haya sido atendida.");
         }
+
+        await _auditoria.RegistrarAsync("AtencionMedica", "Crear", cita.IdCita.ToString(), null,
+            $"Paciente {cita.IdPaciente}, doctor {idDoctor}, diagnóstico {modelo.CodigoCie10}");
 
         return ResultadoOperacion.Ok();
     }
