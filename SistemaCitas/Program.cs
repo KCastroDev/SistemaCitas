@@ -28,6 +28,8 @@ builder.Services.AddScoped<IPrioridadService, PrioridadService>();
 builder.Services.AddScoped<ICitaService, CitaService>();
 builder.Services.AddScoped<IHistorialPuntajeRepositorio, HistorialPuntajeRepositorio>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IAtencionRepositorio, AtencionRepositorio>();
+builder.Services.AddScoped<IConsultorioService, ConsultorioService>();
 
 builder.Services.AddDefaultIdentity<Usuario>(o =>
 {

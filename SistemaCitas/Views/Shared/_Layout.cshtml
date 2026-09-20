@@ -32,6 +32,12 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admision" asp-action="Index">Admisión</a>
                             </li>
                         }
+                        @if (User.IsInRole("Doctor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Consultorio" asp-action="Index">Mi agenda</a>
+                            </li>
+                        }
                         @if (User.IsInRole("Paciente"))
                         {
                             <li class="nav-item">

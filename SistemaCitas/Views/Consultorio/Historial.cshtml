@@ -1,0 +1,73 @@
+﻿@model SistemaCitas.ViewModels.HistorialPacienteViewModel
+@{
+    ViewData["Title"] = "Historial clínico";
+    var p = Model.Paciente;
+    var hoy = DateOnly.FromDateTime(DateTime.Today);
+    var edad = hoy.Year - p.FechaNacimiento.Year;
+    if (p.FechaNacimiento.AddYears(edad) > hoy) { edad--; }
+}
+
+<h1 class="mb-3">Historial clínico</h1>
+
+<div class="alert alert-info fs-5">
+    <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; DNI @p.Dni &middot;
+    @edad años &middot; @(p.Sexo == "M" ? "Masculino" : "Femenino")
+</div>
+
+@if (!Model.Atenciones.Any())
+{
+    <div class="alert alert-secondary fs-5">Este paciente aún no tiene atenciones registradas.</div>
+}
+
+@foreach (var a in Model.Atenciones)
+{
+    var t = a.Cita.Triaje;
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <strong>@a.FechaHoraAtencion.ToString("dd/MM/yyyy HH:mm")</strong>
+            <span>Dr(a). @a.Cita.Doctor.ApellidoPaterno, @a.Cita.Doctor.Nombres &middot; @a.Cita.Ipress.Nombre</span>
+        </div>
+        <div class="card-body">
+            <p class="mb-1"><strong>Motivo de consulta:</strong> @a.MotivoConsulta</p>
+            @if (!string.IsNullOrEmpty(a.Sintomatologia))
+            {
+                <p class="mb-1"><strong>Sintomatología:</strong> @a.Sintomatologia</p>
+            }
+            @if (t != null)
+            {
+                <p class="mb-1">
+                    <strong>Triaje:</strong>
+                    Peso @t.PesoKg.ToString("0.##") kg &middot; Talla @t.TallaCm.ToString("0.##") cm &middot;
+                    Temp. @t.TemperaturaC.ToString("0.#") °C
+                    @if (!string.IsNullOrEmpty(t.PresionArterial)) { <text> &middot; PA @t.PresionArterial</text> }
+                    @if (t.FrecuenciaCardiaca != null) { <text> &middot; FC @t.FrecuenciaCardiaca lpm</text> }
+                    @if (t.SaturacionO2 != null) { <text> &middot; SatO2 @t.SaturacionO2%</text> }
+                </p>
+            }
+            <p class="mb-1">
+                <strong>Diagnóstico:</strong>
+                @foreach (var dg in a.Diagnosticos)
+                {
+                    var tipo = dg.TipoDiagnostico == "D" ? "definitivo" : (dg.TipoDiagnostico == "P" ? "presuntivo" : "repetitivo");
+                    <span class="badge bg-secondary">@dg.CodigoCie10 - @dg.Cie10.Descripcion (@tipo)</span>
+                }
+            </p>
+            @if (!string.IsNullOrEmpty(a.Observaciones))
+            {
+                <p class="mb-1"><strong>Observaciones:</strong> @a.Observaciones</p>
+            }
+            @if (a.Receta.Any())
+            {
+                <p class="mb-1 mt-2"><strong>Receta:</strong></p>
+                <ul class="mb-0">
+                    @foreach (var r in a.Receta)
+                    {
+                        <li>@r.Medicamento.Nombre (@r.Medicamento.Presentacion) &times; @r.Cantidad &mdash; @r.Indicaciones</li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-link">&larr; Volver a mi agenda</a>

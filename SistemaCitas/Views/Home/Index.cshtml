@@ -24,9 +24,9 @@
     }
     if (User.IsInRole("Doctor"))
     {
-        accesos.Add(("Mi agenda", "Ver las citas pendientes de mi horario (RF-12).", null));
-        accesos.Add(("Registrar atención", "Observaciones y receta de la cita en curso (RF-13).", null));
-        accesos.Add(("Historial clínico", "Consultar las atenciones anteriores del paciente (RF-14).", null));
+        accesos.Add(("Mi agenda", "Ver las citas pendientes de mi horario (RF-12).", "/Consultorio"));
+        accesos.Add(("Registrar atención", "Observaciones y receta de la cita en curso (RF-13).", "/Consultorio"));
+        accesos.Add(("Historial clínico", "Consultar las atenciones anteriores del paciente (RF-14).", "/Consultorio"));
     }
     if (User.IsInRole("Paciente"))
     {

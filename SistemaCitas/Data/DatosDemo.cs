@@ -111,6 +111,32 @@ public static class DatosDemo
 
         var admin = await userManager.FindByEmailAsync("admin@sistemacitas.pe");
 
+        // 0) Catalogos del consultorio: medicamentos y diagnosticos CIE-10 adicionales
+        var medicamentos = new[]
+        {
+            ("Paracetamol", "Tableta 500 mg"), ("Ibuprofeno", "Tableta 400 mg"), ("Amoxicilina", "Cápsula 500 mg"),
+            ("Loratadina", "Tableta 10 mg"), ("Omeprazol", "Cápsula 20 mg"), ("Metformina", "Tableta 850 mg"),
+            ("Losartán", "Tableta 50 mg"), ("Salbutamol", "Inhalador 100 mcg")
+        };
+        foreach (var (nombre, presentacion) in medicamentos)
+        {
+            if (!await db.Set<Medicamento>().AnyAsync(m => m.Nombre == nombre))
+                db.Add(new Medicamento { Nombre = nombre, Presentacion = presentacion, Activo = true });
+        }
+
+        var diagnosticos = new[]
+        {
+            ("J06", "Infección aguda de las vías respiratorias superiores"), ("A09", "Diarrea y gastroenteritis de presunto origen infeccioso"),
+            ("K29", "Gastritis y duodenitis"), ("R51", "Cefalea"), ("J45", "Asma"), ("N39", "Otros trastornos del sistema urinario"),
+            ("L30", "Dermatitis, otras")
+        };
+        foreach (var (codigo, descripcion) in diagnosticos)
+        {
+            if (!await db.Set<Cie10>().AnyAsync(c => c.CodigoCie10 == codigo))
+                db.Add(new Cie10 { CodigoCie10 = codigo, Descripcion = descripcion });
+        }
+        await db.SaveChangesAsync();
+
         // 1) IPRESS de demo
         var ipressDemo = new[]
         {

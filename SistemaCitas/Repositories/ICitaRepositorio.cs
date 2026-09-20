@@ -18,4 +18,10 @@ public interface ICitaRepositorio : IRepositorio<Cita>
 
     // Una cita con su paciente, doctor e IPRESS (para cambiar su estado)
     Task<Cita?> ObtenerConDetalleAsync(int idCita);
+
+    // Citas de un doctor en un dia (sin canceladas ni faltas), con su paciente y su atencion si ya la tiene (RF-12)
+    Task<IEnumerable<Cita>> ListarPorDoctorAsync(int idDoctor, DateOnly fecha);
+
+    // Una cita con paciente, triaje y atencion, lista para registrar la atencion medica (RF-13)
+    Task<Cita?> ObtenerParaAtencionAsync(int idCita);
 }

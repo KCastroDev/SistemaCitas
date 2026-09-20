@@ -1,0 +1,98 @@
+﻿@model SistemaCitas.ViewModels.AgendaViewModel
+@using SistemaCitas.Models
+@{
+    ViewData["Title"] = "Mi agenda";
+    var d = Model.Doctor;
+}
+
+<h1 class="mb-1">Mi agenda</h1>
+<p class="text-muted">Dr(a). @d.Nombres @d.ApellidoPaterno @d.ApellidoMaterno &middot; CMP @d.Cmp</p>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success fs-5">@TempData["Mensaje"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger fs-5">@TempData["Error"]</div>
+}
+
+<form asp-action="Index" method="get" class="d-flex align-items-end gap-2 mb-4">
+    <div>
+        <label class="form-label fw-bold" for="fecha">Fecha</label>
+        <input type="date" id="fecha" name="fecha" value="@Model.Fecha.ToString("yyyy-MM-dd")" class="form-control form-control-lg" />
+    </div>
+    <button type="submit" class="btn btn-outline-secondary btn-lg">Ver</button>
+</form>
+
+<h2 class="h4">Por atender (@Model.PorAtender.Count)</h2>
+
+@if (!Model.PorAtender.Any())
+{
+    <div class="alert alert-secondary fs-5">No tiene citas por atender el @Model.Fecha.ToString("dd/MM/yyyy").</div>
+}
+else
+{
+    <table class="table table-striped align-middle fs-5">
+        <thead class="table-light">
+            <tr>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.PorAtender)
+            {
+                <tr>
+                    <td>@c.HoraCita.ToString("HH:mm")</td>
+                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres<br /><small class="text-muted">DNI @c.Paciente.Dni</small></td>
+                    <td>
+                        @if (c.Estado == EstadoCita.Asistido)
+                        {
+                            <span class="badge bg-success">En sala (llegó)</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-primary">Pendiente</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Atender" asp-route-id="@c.IdCita" class="btn btn-success btn-sm">Atender</a>
+                        <a asp-action="Historial" asp-route-idPaciente="@c.IdPaciente" class="btn btn-outline-primary btn-sm">Historial</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2 class="h4 mt-4">Atendidas (@Model.Atendidas.Count)</h2>
+
+@if (!Model.Atendidas.Any())
+{
+    <div class="alert alert-secondary fs-5">Aún no atendió citas en esta fecha.</div>
+}
+else
+{
+    <table class="table table-striped align-middle fs-5">
+        <thead class="table-light">
+            <tr>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.Atendidas)
+            {
+                <tr>
+                    <td>@c.HoraCita.ToString("HH:mm")</td>
+                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres</td>
+                    <td><a asp-action="Historial" asp-route-idPaciente="@c.IdPaciente" class="btn btn-outline-primary btn-sm">Ver historial</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
