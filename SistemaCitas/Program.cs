@@ -38,19 +38,21 @@ builder.Services.ConfigureApplicationCookie(o =>
 var app = builder.Build();
 
 // Crea los roles y el administrador inicial si todavia no existen.
-// Si la base de datos aun no esta lista (falta Update-Database), la app igual arranca
-// y solo muestra una advertencia en la consola.
-using (var scope = app.Services.CreateScope())
+// Se hace EN SEGUNDO PLANO (Task.Run) para que la pagina no tenga que esperar:
+// si la base de datos aun no esta lista (falta la cadena de conexion o Update-Database),
+// la app igual arranca y solo muestra una advertencia en la consola.
+_ = Task.Run(async () =>
 {
     try
     {
+        using var scope = app.Services.CreateScope();
         await SistemaCitas.Data.InicializadorDatos.InicializarAsync(scope.ServiceProvider, app.Configuration);
     }
     catch (Exception ex)
     {
         app.Logger.LogWarning(ex, "No se pudieron crear los roles/administrador iniciales. Verifique la cadena de conexion y ejecute Update-Database.");
     }
-}
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

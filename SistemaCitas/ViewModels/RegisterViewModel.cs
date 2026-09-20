@@ -70,7 +70,7 @@ public class RegisterViewModel
     public string ConfirmarContrasena { get; set; } = null!;
 
     // Ley 29733: el registro exige aceptar los términos (RC-01)
-    [Range(typeof(bool), "true", "true", ErrorMessage = "Debe aceptar los términos y condiciones")]
+    [DebeSerVerdadero(ErrorMessage = "Debe aceptar los términos y condiciones")]
     [Display(Name = "Acepto los términos y condiciones")]
     public bool AceptaTerminos { get; set; }
 

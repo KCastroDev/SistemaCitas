@@ -135,4 +135,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    @* Regla del navegador para la casilla "Acepto los terminos":
+       solo es valida si la casilla esta marcada (ver DebeSerVerdaderoAttribute.cs) *@
+    <script>
+        $.validator.addMethod("debeserverdadero", function (value, element) {
+            return element.checked;
+        });
+        $.validator.unobtrusive.adapters.addBool("debeserverdadero");
+    </script>
 }
