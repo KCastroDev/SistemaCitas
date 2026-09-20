@@ -1,0 +1,111 @@
+﻿@model SistemaCitas.ViewModels.RegistrarPacienteViewModel
+
+@{
+    ViewData["Title"] = "Registrar paciente";
+}
+
+@* CU-01 / RF-02: registro presencial en ventanilla.
+   El paciente queda con 100% de importancia y sin cuenta web. *@
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm border-dark">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-2 text-center">Registrar paciente (presencial)</h1>
+                <p class="text-center text-muted mb-4">Valide el DNI físico del paciente antes de registrarlo.</p>
+
+                <form asp-action="Registrar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Dni" class="form-label fs-5"></label>
+                            <input asp-for="Dni" class="form-control form-control-lg" maxlength="8" inputmode="numeric" />
+                            <span asp-validation-for="Dni" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label asp-for="Nombres" class="form-label fs-5"></label>
+                            <input asp-for="Nombres" class="form-control form-control-lg" />
+                            <span asp-validation-for="Nombres" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoPaterno" class="form-label fs-5"></label>
+                            <input asp-for="ApellidoPaterno" class="form-control form-control-lg" />
+                            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoMaterno" class="form-label fs-5"></label>
+                            <input asp-for="ApellidoMaterno" class="form-control form-control-lg" />
+                            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="FechaNacimiento" class="form-label fs-5"></label>
+                            <input asp-for="FechaNacimiento" type="date" class="form-control form-control-lg" />
+                            <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Sexo" class="form-label fs-5"></label>
+                            <select asp-for="Sexo" class="form-select form-select-lg">
+                                <option value="">-- Seleccione --</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                            <span asp-validation-for="Sexo" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Telefono" class="form-label fs-5"></label>
+                            <input asp-for="Telefono" class="form-control form-control-lg" maxlength="9" inputmode="numeric" />
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdPlanSeguro" class="form-label fs-5"></label>
+                            <select asp-for="IdPlanSeguro" asp-items="Model.PlanesSeguro" class="form-select form-select-lg">
+                                <option value="">-- Seleccione --</option>
+                            </select>
+                            <span asp-validation-for="IdPlanSeguro" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdDistrito" class="form-label fs-5"></label>
+                            <select asp-for="IdDistrito" asp-items="Model.Distritos" class="form-select form-select-lg">
+                                <option value="">-- Seleccione --</option>
+                            </select>
+                            <span asp-validation-for="IdDistrito" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="DniVerificado" class="form-check-input" />
+                        <label asp-for="DniVerificado" class="form-check-label fs-5"></label>
+                        <div><span asp-validation-for="DniVerificado" class="text-danger"></span></div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-sm-flex">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">Registrar paciente</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    @* Misma regla de navegador que en Register.cshtml (ver DebeSerVerdaderoAttribute.cs) *@
+    <script>
+        $.validator.addMethod("debeserverdadero", function (value, element) {
+            return element.checked;
+        });
+        $.validator.unobtrusive.adapters.addBool("debeserverdadero");
+    </script>
+}

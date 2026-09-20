@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SistemaCitas.Data;
 using SistemaCitas.Models;
 using SistemaCitas.Repositories;
+using SistemaCitas.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
 builder.Services.AddScoped<IEspecialidadRepositorio, EspecialidadRepositorio>();
+
+// Servicios (capa de reglas de negocio)
+builder.Services.AddScoped<IPacienteService, PacienteService>();
 
 builder.Services.AddDefaultIdentity<Usuario>(o =>
 {
