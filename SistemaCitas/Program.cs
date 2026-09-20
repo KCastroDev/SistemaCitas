@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SistemaCitas.Data;
 using SistemaCitas.Models;
@@ -19,10 +19,13 @@ builder.Services.AddScoped<IEspecialidadRepositorio, EspecialidadRepositorio>();
 builder.Services.AddScoped<IIpressRepository, IpressRepository>();
 builder.Services.AddScoped<IIpressService, IpressService>();
 builder.Services.AddScoped<IDoctorRepositorio, DoctorRepositorio>();
+builder.Services.AddScoped<ICitaRepositorio, CitaRepositorio>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 // Servicios (capa de reglas de negocio)
 builder.Services.AddScoped<IPacienteService, PacienteService>();
+builder.Services.AddScoped<IPrioridadService, PrioridadService>();
+builder.Services.AddScoped<ICitaService, CitaService>();
 
 builder.Services.AddDefaultIdentity<Usuario>(o =>
 {
@@ -56,6 +59,19 @@ _ = Task.Run(async () =>
     {
         using var scope = app.Services.CreateScope();
         await SistemaCitas.Data.InicializadorDatos.InicializarAsync(scope.ServiceProvider, app.Configuration);
+
+        // Solo en desarrollo: carga doctores, horarios y pacientes de demostracion (ver Data/DatosDemo.cs)
+        if (app.Environment.IsDevelopment())
+        {
+            try
+            {
+                await SistemaCitas.Data.DatosDemo.CargarAsync(scope.ServiceProvider);
+            }
+            catch (Exception exDemo)
+            {
+                app.Logger.LogWarning(exDemo, "No se pudieron cargar los datos de demostracion.");
+            }
+        }
     }
     catch (Exception ex)
     {

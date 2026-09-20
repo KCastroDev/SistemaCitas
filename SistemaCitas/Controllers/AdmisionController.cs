@@ -19,17 +19,20 @@ public class AdmisionController : Controller
     private readonly UserManager<Usuario> _userManager;
     private readonly IRepositorio<PlanSeguro> _planes;
     private readonly IRepositorio<Distrito> _distritos;
+    private readonly ICitaService _citaService;
 
     public AdmisionController(
         IPacienteService pacienteService,
         UserManager<Usuario> userManager,
         IRepositorio<PlanSeguro> planes,
-        IRepositorio<Distrito> distritos)
+        IRepositorio<Distrito> distritos,
+        ICitaService citaService)
     {
         _pacienteService = pacienteService;
         _userManager = userManager;
         _planes = planes;
         _distritos = distritos;
+        _citaService = citaService;
     }
 
     // Lista y busca pacientes (por DNI, nombres o apellidos)
@@ -87,6 +90,68 @@ public class AdmisionController : Controller
 
         TempData["Mensaje"] = $"Paciente {paciente.Nombres} {paciente.ApellidoPaterno} registrado correctamente.";
         return RedirectToAction(nameof(Index), new { buscar = modelo.Dni });
+    }
+
+    // ---------------------------------------------------------------
+    // Citas presenciales y control del dia (CU-08, RF-09, RF-10, RF-11)
+    // ---------------------------------------------------------------
+
+    // RF-09: Admision agenda una cita para un paciente que esta en ventanilla
+    [HttpGet]
+    public async Task<IActionResult> Agendar(int idPaciente, int? idEspecialidad, int? idDoctor, DateOnly? fecha)
+    {
+        var paciente = await _citaService.ObtenerPacienteAsync(idPaciente);
+        if (paciente == null) return NotFound();
+
+        var modelo = await _citaService.ArmarBusquedaAsync(paciente, idEspecialidad, idDoctor, fecha, presencial: true);
+        return View(modelo);
+    }
+
+    // RF-09 + RC-03: confirma la cita presencial (exige marcar que se verifico el DNI fisico)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reservar(int idPaciente, int idDoctor, DateOnly fecha, TimeOnly hora, int? idEspecialidad, bool dniVerificado)
+    {
+        var resultado = await _citaService.AgendarAsync(idPaciente, idDoctor, fecha, hora, "Presencial", dniVerificado);
+
+        if (!resultado.Exito)
+        {
+            TempData["Error"] = resultado.Error;
+            return RedirectToAction(nameof(Agendar), new { idPaciente, idEspecialidad, idDoctor, fecha = fecha.ToString("yyyy-MM-dd") });
+        }
+
+        TempData["Mensaje"] = $"Cita presencial registrada para el {fecha:dd/MM/yyyy} a las {hora:HH:mm}.";
+        return RedirectToAction(nameof(Citas), new { fecha = fecha.ToString("yyyy-MM-dd") });
+    }
+
+    // RF-10: lista las citas de un dia para marcar Asistio / Falto / Cancelar
+    [HttpGet]
+    public async Task<IActionResult> Citas(DateOnly? fecha)
+    {
+        var dia = fecha ?? DateOnly.FromDateTime(DateTime.Now);
+        var modelo = new CitasDelDiaViewModel
+        {
+            Fecha = dia,
+            Citas = await _citaService.ListarCitasPorFechaAsync(dia)
+        };
+        return View(modelo);
+    }
+
+    // RF-10 + RF-11: cambia el estado de la cita (si "Falto", baja la importancia del paciente)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CambiarEstadoCita(int id, EstadoCita estado, DateOnly fecha)
+    {
+        var resultado = await _citaService.CambiarEstadoAsync(id, estado, _userManager.GetUserId(User)!);
+
+        if (resultado.Exito)
+            TempData["Mensaje"] = estado == EstadoCita.Falto
+                ? "Inasistencia registrada: se redujo la importancia del paciente (RF-11)."
+                : $"Cita marcada como {estado}.";
+        else
+            TempData["Error"] = resultado.Error;
+
+        return RedirectToAction(nameof(Citas), new { fecha = fecha.ToString("yyyy-MM-dd") });
     }
 
     private async Task CargarListasAsync(RegistrarPacienteViewModel modelo)

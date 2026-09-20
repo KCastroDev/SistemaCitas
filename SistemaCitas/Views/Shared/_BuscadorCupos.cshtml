@@ -1,0 +1,131 @@
+﻿@* Buscador de cupos + reserva (RF-07). Lo usan el paciente (web) y Admision (presencial).
+   El controlador que lo incluye manda en ViewData["Controlador"] el nombre de su controlador
+   y en ViewData["ActionBuscar"] la accion que muestra esta pantalla. La reserva va a la accion "Reservar". *@
+@model SistemaCitas.ViewModels.BuscarCuposViewModel
+@{
+    var controlador = ViewData["Controlador"]?.ToString() ?? "Citas";
+    var accionBuscar = ViewData["ActionBuscar"]?.ToString() ?? "Nueva";
+    var hoy = DateOnly.FromDateTime(DateTime.Now);
+    var p = Model.Paciente;
+}
+
+<div class="alert @(Model.Bloqueado ? "alert-danger" : "alert-info")">
+    <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; DNI @p.Dni &middot;
+    Importancia: <strong>@p.PorcentajeImportancia.ToString("0.##")%</strong>
+    <div class="mt-1">@Model.AvisoPrioridad</div>
+</div>
+
+@if (Model.Bloqueado)
+{
+    return;
+}
+
+@* Paso 1: elegir especialidad, doctor y fecha. Al cambiar un dato se vuelve a buscar. *@
+<form method="get" action="@Url.Action(accionBuscar, controlador)" id="formBuscar" class="row g-3 mb-4">
+    @if (Model.Presencial)
+    {
+        <input type="hidden" name="idPaciente" value="@p.IdPaciente" />
+    }
+
+    <div class="col-md-4">
+        <label class="form-label fw-bold" for="idEspecialidad">1. Especialidad</label>
+        <select id="idEspecialidad" name="idEspecialidad" class="form-select form-select-lg">
+            <option value="">-- Elija --</option>
+            @foreach (var e in Model.Especialidades)
+            {
+                <option value="@e.Value" selected="@e.Selected">@e.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-5">
+        <label class="form-label fw-bold" for="idDoctor">2. Doctor</label>
+        <select id="idDoctor" name="idDoctor" class="form-select form-select-lg" disabled="@(Model.IdEspecialidad == null)">
+            <option value="">-- Elija --</option>
+            @foreach (var d in Model.Doctores)
+            {
+                <option value="@d.Value" selected="@d.Selected">@d.Text</option>
+            }
+        </select>
+        @if (Model.IdEspecialidad != null && !Model.Doctores.Any())
+        {
+            <div class="form-text text-danger">No hay doctores habilitados para esta especialidad.</div>
+        }
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-bold" for="fecha">3. Fecha</label>
+        <input type="date" id="fecha" name="fecha" class="form-control form-control-lg"
+               min="@hoy.ToString("yyyy-MM-dd")" value="@(Model.Fecha?.ToString("yyyy-MM-dd"))"
+               disabled="@(Model.IdDoctor == null)" />
+    </div>
+</form>
+
+@if (Model.DoctorSeleccionado != null && Model.Fecha != null)
+{
+    <h4 class="mb-3">4. Elija la hora (@Model.Fecha.Value.ToString("dddd dd/MM/yyyy"))</h4>
+
+    @if (!Model.Cupos.Any())
+    {
+        <div class="alert alert-warning">El doctor no atiende ese día (o ya pasaron todas sus horas). Pruebe con otra fecha.</div>
+    }
+    else
+    {
+        <form method="post" action="@Url.Action("Reservar", controlador)">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="idDoctor" value="@Model.DoctorSeleccionado.IdDoctor" />
+            <input type="hidden" name="idEspecialidad" value="@Model.IdEspecialidad" />
+            <input type="hidden" name="fecha" value="@Model.Fecha.Value.ToString("yyyy-MM-dd")" />
+            @if (Model.Presencial)
+            {
+                <input type="hidden" name="idPaciente" value="@p.IdPaciente" />
+            }
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @foreach (var c in Model.Cupos)
+                {
+                    var id = "hora_" + c.Hora.ToString("HHmm");
+                    <input type="radio" class="btn-check" name="hora" id="@id" value="@c.Hora.ToString("HH:mm")"
+                           disabled="@(!c.Disponible)" required />
+                    <label class="btn @(c.Disponible ? "btn-outline-primary" : "btn-outline-secondary")" for="@id"
+                           title="@c.Motivo">
+                        @c.Hora.ToString("HH:mm")
+                        @if (!c.Disponible)
+                        {
+                            <small class="d-block">@(c.Motivo == "Ocupado" ? "Ocupado" : "Reservado")</small>
+                        }
+                    </label>
+                }
+            </div>
+
+            @if (Model.Presencial)
+            {
+                <div class="form-check mb-3 fs-5">
+                    <input class="form-check-input" type="checkbox" name="dniVerificado" id="dniVerificado" value="true" required />
+                    <label class="form-check-label" for="dniVerificado">
+                        Verifiqué el DNI físico del paciente (RC-03)
+                    </label>
+                </div>
+            }
+
+            <button type="submit" class="btn btn-success btn-lg">Confirmar cita</button>
+        </form>
+    }
+}
+
+<script>
+    // Al elegir especialidad se limpia el doctor; al elegir doctor o fecha se vuelve a buscar.
+    (function () {
+        var form = document.getElementById('formBuscar');
+        var esp = document.getElementById('idEspecialidad');
+        var doc = document.getElementById('idDoctor');
+        var fecha = document.getElementById('fecha');
+        esp.addEventListener('change', function () {
+            doc.disabled = false; doc.value = ''; fecha.value = '';
+            doc.disabled = true; fecha.disabled = true;
+            form.submit();
+        });
+        doc.addEventListener('change', function () { fecha.disabled = false; form.submit(); });
+        fecha.addEventListener('change', function () { form.submit(); });
+    })();
+</script>

@@ -1,0 +1,80 @@
+﻿@model SistemaCitas.ViewModels.CitasDelDiaViewModel
+@using SistemaCitas.Models
+@{
+    ViewData["Title"] = "Admisión - Citas del día";
+}
+
+<h1 class="mb-3">Citas del día</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success fs-5">@TempData["Mensaje"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger fs-5">@TempData["Error"]</div>
+}
+
+<form asp-action="Citas" method="get" class="d-flex align-items-end gap-2 mb-3">
+    <div>
+        <label class="form-label fw-bold" for="fecha">Fecha</label>
+        <input type="date" id="fecha" name="fecha" value="@Model.Fecha.ToString("yyyy-MM-dd")" class="form-control form-control-lg" />
+    </div>
+    <button type="submit" class="btn btn-outline-secondary btn-lg">Ver</button>
+    <a asp-action="Index" class="btn btn-primary btn-lg ms-auto">Buscar paciente para agendar</a>
+</form>
+
+@if (!Model.Citas.Any())
+{
+    <div class="alert alert-secondary fs-5">No hay citas para el @Model.Fecha.ToString("dd/MM/yyyy").</div>
+}
+else
+{
+    <table class="table table-striped align-middle fs-5">
+        <thead class="table-light">
+            <tr>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Importancia</th>
+                <th>Doctor</th>
+                <th>Canal</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.Citas)
+            {
+                var badge = c.Estado switch
+                {
+                    EstadoCita.Pendiente => "bg-primary",
+                    EstadoCita.Asistido => "bg-success",
+                    EstadoCita.Falto => "bg-danger",
+                    _ => "bg-secondary"
+                };
+                <tr>
+                    <td>@c.HoraCita.ToString("HH:mm")</td>
+                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres<br /><small class="text-muted">DNI @c.Paciente.Dni</small></td>
+                    <td>@c.Paciente.PorcentajeImportancia.ToString("0.##")%</td>
+                    <td>@c.Doctor.ApellidoPaterno, @c.Doctor.Nombres</td>
+                    <td>@c.Canal</td>
+                    <td><span class="badge @badge">@c.Estado</span></td>
+                    <td>
+                        @if (c.Estado == EstadoCita.Pendiente)
+                        {
+                            <form asp-action="CambiarEstadoCita" method="post" class="d-inline-flex gap-1">
+                                <input type="hidden" name="id" value="@c.IdCita" />
+                                <input type="hidden" name="fecha" value="@Model.Fecha.ToString("yyyy-MM-dd")" />
+                                <button type="submit" name="estado" value="@((int)EstadoCita.Asistido)" class="btn btn-success btn-sm">Asistió</button>
+                                <button type="submit" name="estado" value="@((int)EstadoCita.Falto)" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('¿Registrar inasistencia? Se reducirá la importancia del paciente.');">Faltó</button>
+                                <button type="submit" name="estado" value="@((int)EstadoCita.Cancelado)" class="btn btn-outline-secondary btn-sm"
+                                        onclick="return confirm('¿Cancelar esta cita?');">Cancelar</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
