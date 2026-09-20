@@ -11,15 +11,16 @@
     if (User.IsInRole("Administrador"))
     {
         accesos.Add(("Especialidades", "Crear, editar y desactivar las especialidades médicas.", "/Especialidades"));
-        accesos.Add(("IPRESS", "Gestionar los establecimientos de salud (RF-03).", null));
-        accesos.Add(("Doctores y horarios", "Registrar doctores, su contrato y su horario (RF-04, RF-06).", null));
+        accesos.Add(("IPRESS", "Gestionar los establecimientos de salud (RF-03).", "/Ipress"));
+        accesos.Add(("Doctores y horarios", "Registrar doctores, validar su CMP y programar su horario (RF-04, RF-05, RF-06).", "/Doctores"));
+        accesos.Add(("Admisión y citas", "Pacientes, citas presenciales y control de citas del día (RF-09, RF-10).", "/Admision"));
         accesos.Add(("Dashboards y auditoría", "Estadísticas y registro de operaciones (RF-15).", null));
     }
     if (User.IsInRole("Admision"))
     {
         accesos.Add(("Registrar paciente", "Registro presencial validando el DNI físico (RF-02).", "/Admision"));
-        accesos.Add(("Asignar cita presencial", "Reservar una cita para un paciente en ventanilla (RF-09).", null));
-        accesos.Add(("Estado de las citas", "Marcar Asistido, Cancelado o Faltó (RF-10).", null));
+        accesos.Add(("Asignar cita presencial", "Reservar una cita para un paciente en ventanilla (RF-09).", "/Admision"));
+        accesos.Add(("Estado de las citas", "Marcar Asistido, Cancelado o Faltó (RF-10).", "/Admision/Citas"));
     }
     if (User.IsInRole("Doctor"))
     {
@@ -29,9 +30,9 @@
     }
     if (User.IsInRole("Paciente"))
     {
-        accesos.Add(("Reservar cita", "Elegir especialidad, doctor y fecha (RF-07).", null));
-        accesos.Add(("Mis citas", "Ver mis citas y su estado.", null));
-        accesos.Add(("Mi porcentaje de importancia", "Ver mi puntaje de prioridad (RF-08).", null));
+        accesos.Add(("Reservar cita", "Elegir especialidad, doctor y fecha (RF-07).", "/Citas/Nueva"));
+        accesos.Add(("Mis citas", "Ver mis citas y su estado.", "/Citas"));
+        accesos.Add(("Mi porcentaje de importancia", "Ver mi puntaje de prioridad (RF-08).", "/Citas"));
     }
 }
 
