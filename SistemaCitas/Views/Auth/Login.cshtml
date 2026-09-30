@@ -10,18 +10,40 @@
             <div class="card-body p-4">
                 <h1 class="h3 mb-4 text-center">Iniciar sesión</h1>
 
+                @if (TempData["RegistroExitoso"] != null)
+                {
+                    <div class="alert alert-success" role="alert">
+                        <i class="bi bi-check-circle"></i> @TempData["RegistroExitoso"]
+                    </div>
+                }
+
                 <form asp-controller="Auth" asp-action="Login" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="Correo" class="form-label fs-5"></label>
-                        <input asp-for="Correo" class="form-control form-control-lg" autocomplete="username" />
-                        <span asp-validation-for="Correo" class="text-danger"></span>
+                    <div class="row g-2 mb-3">
+                        <div class="col-5">
+                            <label asp-for="IdTipoDocumento" class="form-label fs-5"></label>
+                            <select asp-for="IdTipoDocumento" asp-items="Model.TiposDocumento"
+                                    class="form-select form-select-lg" id="tipoDocumento"></select>
+                        </div>
+                        <div class="col-7">
+                            <label asp-for="Documento" class="form-label fs-5"></label>
+                            <input asp-for="Documento" class="form-control form-control-lg"
+                                   id="numeroDocumento" maxlength="15" autocomplete="username" />
+                            <span asp-validation-for="Documento" class="text-danger"></span>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Contrasena" class="form-label fs-5"></label>
-                        <input asp-for="Contrasena" class="form-control form-control-lg" autocomplete="current-password" />
+                        <div class="input-group input-group-lg">
+                            <input asp-for="Contrasena" class="form-control" autocomplete="current-password" />
+                            <button class="btn btn-outline-secondary" type="button"
+                                    data-ver-clave="#@Html.IdFor(m => m.Contrasena)"
+                                    aria-label="Mostrar u ocultar la contraseña">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         <span asp-validation-for="Contrasena" class="text-danger"></span>
                     </div>
 
@@ -39,4 +61,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/documento.js" asp-append-version="true"></script>
+    <script src="~/js/ver-clave.js" asp-append-version="true"></script>
 }

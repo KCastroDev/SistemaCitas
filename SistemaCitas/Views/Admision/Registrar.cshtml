@@ -19,9 +19,20 @@
 
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label asp-for="Dni" class="form-label fs-5"></label>
-                            <input asp-for="Dni" class="form-control form-control-lg" maxlength="8" inputmode="numeric" />
-                            <span asp-validation-for="Dni" class="text-danger"></span>
+                            <div class="row g-2">
+                                <div class="col-5">
+                                    <label asp-for="IdTipoDocumento" class="form-label fs-5"></label>
+                                    <select asp-for="IdTipoDocumento" asp-items="Model.TiposDocumento"
+                                            class="form-select form-select-lg" id="tipoDocumento"></select>
+                                    <span asp-validation-for="IdTipoDocumento" class="text-danger"></span>
+                                </div>
+                                <div class="col-7">
+                                    <label asp-for="Dni" class="form-label fs-5"></label>
+                                    <input asp-for="Dni" class="form-control form-control-lg"
+                                           id="numeroDocumento" maxlength="15" autocomplete="off" />
+                                    <span asp-validation-for="Dni" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-8 mb-3">
                             <label asp-for="Nombres" class="form-label fs-5"></label>
@@ -100,6 +111,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/documento.js" asp-append-version="true"></script>
 
     @* Misma regla de navegador que en Register.cshtml (ver DebeSerVerdaderoAttribute.cs) *@
     <script>

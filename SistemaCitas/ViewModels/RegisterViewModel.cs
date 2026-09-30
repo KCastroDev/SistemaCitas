@@ -8,9 +8,15 @@ public class RegisterViewModel
 {
     // ---------- Datos personales (van a la tabla PACIENTE) ----------
 
-    [Required(ErrorMessage = "Ingrese su DNI")]
-    [RegularExpression(@"^\d{8}$", ErrorMessage = "El DNI debe tener 8 dígitos")]
-    [Display(Name = "DNI")]
+    [Required(ErrorMessage = "Seleccione el tipo de documento")]
+    [Display(Name = "Tipo de documento")]
+    public int IdTipoDocumento { get; set; } = 1;   // 1 = DNI
+
+    // El formato concreto (largo y si admite letras) lo valida el servidor
+    // segun el tipo elegido, con Helpers/Documento.Validar
+    [Required(ErrorMessage = "Ingrese su número de documento")]
+    [StringLength(15, MinimumLength = 6, ErrorMessage = "El número de documento no es válido")]
+    [Display(Name = "Número de documento")]
     public string Dni { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese sus nombres")]
@@ -33,6 +39,9 @@ public class RegisterViewModel
 
     [Required(ErrorMessage = "Ingrese su fecha de nacimiento")]
     [DataType(DataType.Date)]
+    // Cuenta web: solo mayores de edad (Ley 29733). Los menores se registran en Admision.
+    [FechaNacimientoValida(EdadMinima = 18,
+        ErrorMessage = "La fecha no es válida: debe ser pasada y corresponder a una persona mayor de 18 años")]
     [Display(Name = "Fecha de nacimiento")]
     public DateOnly? FechaNacimiento { get; set; }
 
@@ -55,10 +64,11 @@ public class RegisterViewModel
 
     // ---------- Datos de la cuenta (van a la tabla de usuarios) ----------
 
-    [Required(ErrorMessage = "Ingrese su correo electrónico")]
+    // Opcional: sirve para recuperar la contrasena sin ir a ventanilla.
+    // Si no lo registra, el restablecimiento se hace en Admision con su DNI fisico.
     [EmailAddress(ErrorMessage = "El correo no tiene un formato válido")]
-    [Display(Name = "Correo electrónico")]
-    public string Correo { get; set; } = null!;
+    [Display(Name = "Correo electrónico (opcional)")]
+    public string? Correo { get; set; }
 
     [Required(ErrorMessage = "Ingrese una contraseña")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "La contraseña debe tener mínimo 8 caracteres")]
@@ -78,6 +88,9 @@ public class RegisterViewModel
     public bool AceptaTerminos { get; set; }
 
     // ---------- Listas para los menús desplegables (se llenan desde la BD) ----------
+
+    [ValidateNever]
+    public IEnumerable<SelectListItem> TiposDocumento { get; set; } = new List<SelectListItem>();
 
     [ValidateNever]
     public IEnumerable<SelectListItem> PlanesSeguro { get; set; } = new List<SelectListItem>();

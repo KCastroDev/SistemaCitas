@@ -21,8 +21,15 @@ public class Paciente
     [Key]
     public int IdPaciente { get; set; }
 
-    [Required, StringLength(8)]
-    public string Dni { get; set; } = null!;              // indice unico
+    // Tipo de documento (DNI por defecto). La pareja IdTipoDocumento + Dni es unica.
+    public int IdTipoDocumento { get; set; } = 1;
+    public TipoDocumento TipoDocumento { get; set; } = null!;
+
+    // Numero del documento. Se llama "Dni" por compatibilidad con el codigo existente,
+    // pero guarda el numero del tipo elegido (DNI, carne de extranjeria, pasaporte o CNV).
+    [Required, StringLength(15)]
+    [Display(Name = "Número de documento")]
+    public string Dni { get; set; } = null!;
 
     [Required, StringLength(60)]
     public string Nombres { get; set; } = null!;

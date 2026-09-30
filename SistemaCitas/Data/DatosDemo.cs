@@ -115,16 +115,12 @@ public static class DatosDemo
     {
         if (doctor.EstadoHabilitacion != "Habilitado") return;
 
-        var deseado = ArmarHorarios(d);
-        var actual = doctor.Horarios.Where(h => h.Activo).ToList();
+        // IMPORTANTE: la semilla solo crea horarios cuando el doctor NO tiene ninguno.
+        // Antes borraba y reescribia TODOS los bloques en cada arranque, lo que eliminaba
+        // los horarios que el administrador agregaba a mano desde la pantalla de Horarios.
+        if (doctor.Horarios.Any()) return;
 
-        static string Clave(HorarioDoctor h) => $"{h.DiaSemana}|{h.HoraInicio}|{h.HoraFin}|{h.CuposPorHora}";
-        var iguales = actual.Count == deseado.Count &&
-                      actual.Select(Clave).OrderBy(x => x).SequenceEqual(deseado.Select(Clave).OrderBy(x => x));
-        if (iguales) return;
-
-        db.RemoveRange(doctor.Horarios);
-        foreach (var h in deseado)
+        foreach (var h in ArmarHorarios(d))
         {
             h.IdDoctor = doctor.IdDoctor;
             db.Add(h);
@@ -180,8 +176,13 @@ public static class DatosDemo
             {
                 ipress = new Ipress
                 {
-                    CodigoRenipress = codigo, Nombre = nombre, NivelAtencion = nivel, Direccion = direccion,
-                    IdUnidadEjecutora = ue, IdDistrito = distrito, Activo = true
+                    CodigoRenipress = codigo,
+                    Nombre = nombre,
+                    NivelAtencion = nivel,
+                    Direccion = direccion,
+                    IdUnidadEjecutora = ue,
+                    IdDistrito = distrito,
+                    Activo = true
                 };
                 db.Add(ipress);
                 await db.SaveChangesAsync();
@@ -209,8 +210,12 @@ public static class DatosDemo
 
             var usuario = new Usuario
             {
-                UserName = d.Correo, Email = d.Correo, EmailConfirmed = true,
-                Nombres = $"{d.Nombres} {d.Paterno}", IdIpress = ipress.IdIpress, Activo = true
+                UserName = SistemaCitas.Helpers.Documento.ArmarUsuario("DNI", d.Dni),
+                Email = d.Correo,
+                EmailConfirmed = true,
+                Nombres = $"{d.Nombres} {d.Paterno}",
+                IdIpress = ipress.IdIpress,
+                Activo = true
             };
             var creado = await userManager.CreateAsync(usuario, ContrasenaDoctor);
             if (!creado.Succeeded) continue;
@@ -219,10 +224,17 @@ public static class DatosDemo
             var habilitado = !d.Cmp.EndsWith('0');   // misma regla simulada del DoctorService (RO-03)
             var doctor = new Doctor
             {
-                Cmp = d.Cmp, Dni = d.Dni, Nombres = d.Nombres, ApellidoPaterno = d.Paterno, ApellidoMaterno = d.Materno,
+                Cmp = d.Cmp,
+                Dni = d.Dni,
+                Nombres = d.Nombres,
+                ApellidoPaterno = d.Paterno,
+                ApellidoMaterno = d.Materno,
                 EstadoHabilitacion = habilitado ? "Habilitado" : "No habilitado",
                 FechaValidacionCmp = DateTime.Now,
-                IdIpress = ipress.IdIpress, IdTipoContrato = d.IdContrato, UsuarioId = usuario.Id, Activo = true
+                IdIpress = ipress.IdIpress,
+                IdTipoContrato = d.IdContrato,
+                UsuarioId = usuario.Id,
+                Activo = true
             };
             doctor.DoctorEspecialidades.Add(new DoctorEspecialidad { IdEspecialidad = especialidad.IdEspecialidad });
 
@@ -246,8 +258,11 @@ public static class DatosDemo
             {
                 var usuario = new Usuario
                 {
-                    UserName = p.Correo, Email = p.Correo, EmailConfirmed = true,
-                    Nombres = $"{p.Nombres} {p.Paterno}", Activo = true
+                    UserName = SistemaCitas.Helpers.Documento.ArmarUsuario("DNI", p.Dni),
+                    Email = p.Correo,
+                    EmailConfirmed = true,
+                    Nombres = $"{p.Nombres} {p.Paterno}",
+                    Activo = true
                 };
                 var creado = await userManager.CreateAsync(usuario, ContrasenaPaciente);
                 if (creado.Succeeded)
@@ -259,10 +274,19 @@ public static class DatosDemo
 
             db.Add(new Paciente
             {
-                Dni = p.Dni, Nombres = p.Nombres, ApellidoPaterno = p.Paterno, ApellidoMaterno = p.Materno,
-                FechaNacimiento = p.Nacimiento, Sexo = p.Sexo, Telefono = p.Telefono,
-                IdPlanSeguro = p.IdPlan, IdDistrito = p.IdDistrito, PorcentajeImportancia = p.Importancia,
-                UsuarioId = usuarioId, RegistradoPorId = admin?.Id, Activo = true
+                Dni = p.Dni,
+                Nombres = p.Nombres,
+                ApellidoPaterno = p.Paterno,
+                ApellidoMaterno = p.Materno,
+                FechaNacimiento = p.Nacimiento,
+                Sexo = p.Sexo,
+                Telefono = p.Telefono,
+                IdPlanSeguro = p.IdPlan,
+                IdDistrito = p.IdDistrito,
+                PorcentajeImportancia = p.Importancia,
+                UsuarioId = usuarioId,
+                RegistradoPorId = admin?.Id,
+                Activo = true
             });
             await db.SaveChangesAsync();
         }

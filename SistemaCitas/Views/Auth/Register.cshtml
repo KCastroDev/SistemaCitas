@@ -23,9 +23,20 @@
 
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label asp-for="Dni" class="form-label fs-5"></label>
-                            <input asp-for="Dni" class="form-control form-control-lg" maxlength="8" inputmode="numeric" />
-                            <span asp-validation-for="Dni" class="text-danger"></span>
+                            <div class="row g-2">
+                                <div class="col-5">
+                                    <label asp-for="IdTipoDocumento" class="form-label fs-5"></label>
+                                    <select asp-for="IdTipoDocumento" asp-items="Model.TiposDocumento"
+                                            class="form-select form-select-lg" id="tipoDocumento"></select>
+                                    <span asp-validation-for="IdTipoDocumento" class="text-danger"></span>
+                                </div>
+                                <div class="col-7">
+                                    <label asp-for="Dni" class="form-label fs-5"></label>
+                                    <input asp-for="Dni" class="form-control form-control-lg"
+                                           id="numeroDocumento" maxlength="15" autocomplete="off" />
+                                    <span asp-validation-for="Dni" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-8 mb-3">
                             <label asp-for="Nombres" class="form-label fs-5"></label>
@@ -50,7 +61,9 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label asp-for="FechaNacimiento" class="form-label fs-5"></label>
-                            <input asp-for="FechaNacimiento" type="date" class="form-control form-control-lg" />
+                            <input asp-for="FechaNacimiento" type="date" class="form-control form-control-lg"
+                                   max="@DateOnly.FromDateTime(DateTime.Today.AddYears(-18)).ToString("yyyy-MM-dd")"
+                                   min="@DateOnly.FromDateTime(DateTime.Today.AddYears(-120)).ToString("yyyy-MM-dd")" />
                             <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -90,19 +103,34 @@
 
                     <div class="mb-3">
                         <label asp-for="Correo" class="form-label fs-5"></label>
-                        <input asp-for="Correo" class="form-control form-control-lg" autocomplete="username" />
+                        <input asp-for="Correo" class="form-control form-control-lg" autocomplete="email" />
+                        <div class="form-text">Solo se usa para recuperar su contraseña. Puede dejarlo en blanco.</div>
                         <span asp-validation-for="Correo" class="text-danger"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-1">
                             <label asp-for="Contrasena" class="form-label fs-5"></label>
-                            <input asp-for="Contrasena" class="form-control form-control-lg" autocomplete="new-password" />
+                            <div class="input-group input-group-lg">
+                                <input asp-for="Contrasena" class="form-control" autocomplete="new-password" />
+                                <button class="btn btn-outline-secondary" type="button"
+                                        data-ver-clave="#@Html.IdFor(m => m.Contrasena)"
+                                        aria-label="Mostrar u ocultar la contraseña">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="Contrasena" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-1">
                             <label asp-for="ConfirmarContrasena" class="form-label fs-5"></label>
-                            <input asp-for="ConfirmarContrasena" class="form-control form-control-lg" autocomplete="new-password" />
+                            <div class="input-group input-group-lg">
+                                <input asp-for="ConfirmarContrasena" class="form-control" autocomplete="new-password" />
+                                <button class="btn btn-outline-secondary" type="button"
+                                        data-ver-clave="#@Html.IdFor(m => m.ConfirmarContrasena)"
+                                        aria-label="Mostrar u ocultar la contraseña">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="ConfirmarContrasena" class="text-danger"></span>
                         </div>
                     </div>
@@ -135,6 +163,8 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/documento.js" asp-append-version="true"></script>
+    <script src="~/js/ver-clave.js" asp-append-version="true"></script>
 
     @* Regla del navegador para la casilla "Acepto los terminos":
        solo es valida si la casilla esta marcada (ver DebeSerVerdaderoAttribute.cs) *@

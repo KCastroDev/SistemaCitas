@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using SistemaCitas.Helpers;
 using SistemaCitas.Models;
 using SistemaCitas.Repositories;
 using SistemaCitas.ViewModels;
@@ -111,7 +112,15 @@ public class CitaService : ICitaService
         vm.DoctorSeleccionado = elegido;
 
         if (fecha != null && !vm.Bloqueado)
+        {
             vm.Cupos = await BuscarCuposAsync(elegido.IdDoctor, fecha.Value, importancia, !presencial);
+
+            if (!vm.Cupos.Any())
+            {
+                var detalle = await _doctores.ObtenerConDetalleAsync(elegido.IdDoctor);
+                if (detalle != null) vm.MotivoSinCupos = MotivoSinCupos(detalle, fecha.Value);
+            }
+        }
 
         return vm;
     }
@@ -131,9 +140,36 @@ public class CitaService : ICitaService
         return horas;
     }
 
-    // 1 = lunes ... 7 = domingo (igual que HorarioDoctor.DiaSemana)
-    private static int DiaSemana(DateOnly fecha) =>
-        fecha.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)fecha.DayOfWeek;
+    // 1 = lunes ... 7 = domingo. Vive en Helpers/Reloj para que backend y vistas usen la misma regla.
+    private static int DiaSemana(DateOnly fecha) => Reloj.DiaSemana(fecha);
+
+    // Explica en una frase por que una fecha no muestra cupos (antes siempre decia
+    // "el doctor no atiende ese dia", aunque el motivo fuera otro).
+    private static string MotivoSinCupos(Doctor doctor, DateOnly fecha)
+    {
+        var dia = DiaSemana(fecha);
+        var nombreDia = Reloj.NombreDia(dia);
+
+        if (doctor.EstadoHabilitacion != Habilitado)
+            return $"El doctor figura como \"{doctor.EstadoHabilitacion}\" en el CMP, por eso no se muestran cupos.";
+
+        var activos = doctor.Horarios.Where(h => h.Activo).ToList();
+        if (!activos.Any())
+            return "El doctor todavía no tiene horarios asignados. Configúrelos en Doctores → Horarios.";
+
+        var delDia = activos.Where(h => h.DiaSemana == dia).ToList();
+        if (!delDia.Any())
+        {
+            var dias = string.Join(", ", activos.Select(h => h.DiaSemana).Distinct().OrderBy(n => n).Select(Reloj.NombreDia));
+            return $"El doctor no atiende los {nombreDia}. Sus días de atención son: {dias}.";
+        }
+
+        if (fecha == Reloj.Hoy)
+            return $"Hoy el doctor atiende de {delDia.Min(h => h.HoraInicio):HH\\:mm} a {delDia.Max(h => h.HoraFin):HH\\:mm}, " +
+                   "y esas horas ya pasaron. Elija otra fecha.";
+
+        return "No hay cupos disponibles para esa fecha.";
+    }
 
     private async Task<List<CupoDto>> BuscarCuposAsync(int idDoctor, DateOnly fecha, decimal importancia, bool aplicarPrioridad)
     {
@@ -142,9 +178,9 @@ public class CitaService : ICitaService
         var doctor = await _doctores.ObtenerConDetalleAsync(idDoctor);
         if (doctor == null || !doctor.Activo || doctor.EstadoHabilitacion != Habilitado) return lista;
 
-        var ahora = DateTime.Now;
-        var hoy = DateOnly.FromDateTime(ahora);
-        var horaActual = TimeOnly.FromDateTime(ahora);
+        // Reloj.Hoy usa la hora de Peru, no la del servidor (evita el corrimiento de un dia)
+        var hoy = Reloj.Hoy;
+        var horaActual = Reloj.HoraActual;
         if (fecha < hoy) return lista;
 
         var ocupadas = await _citas.HorasOcupadasAsync(idDoctor, fecha);
@@ -204,9 +240,9 @@ public class CitaService : ICitaService
         if (doctor.EstadoHabilitacion != Habilitado)
             return ResultadoOperacion.Falla("El doctor no está habilitado por el CMP.");
 
-        var ahora = DateTime.Now;
-        var hoy = DateOnly.FromDateTime(ahora);
-        if (fecha < hoy || (fecha == hoy && hora <= TimeOnly.FromDateTime(ahora)))
+        var ahora = Reloj.Ahora;
+        var hoy = Reloj.Hoy;
+        if (fecha < hoy || (fecha == hoy && hora <= Reloj.HoraActual))
             return ResultadoOperacion.Falla("La fecha y hora de la cita deben ser futuras.");
 
         if (!presencial)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SistemaCitas.Helpers;
 using SistemaCitas.Data;
 using SistemaCitas.Models;
 using SistemaCitas.Repositories;
@@ -14,6 +15,7 @@ public class AuthController : Controller
     private readonly UserManager<Usuario> _userManager;
 
     // Repositorios (patron de Kevin) para leer los catalogos y guardar al paciente
+    private readonly IRepositorio<TipoDocumento> _tiposDocumento;
     private readonly IRepositorio<PlanSeguro> _planes;
     private readonly IRepositorio<Distrito> _distritos;
     private readonly IRepositorio<Paciente> _pacientes;
@@ -21,12 +23,14 @@ public class AuthController : Controller
     public AuthController(
         SignInManager<Usuario> signInManager,
         UserManager<Usuario> userManager,
+        IRepositorio<TipoDocumento> tiposDocumento,
         IRepositorio<PlanSeguro> planes,
         IRepositorio<Distrito> distritos,
         IRepositorio<Paciente> pacientes)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _tiposDocumento = tiposDocumento;
         _planes = planes;
         _distritos = distritos;
         _pacientes = pacientes;
@@ -34,9 +38,19 @@ public class AuthController : Controller
 
     // Muestra la pantalla de login
     [HttpGet]
-    public IActionResult Login()
+    public async Task<IActionResult> Login()
     {
-        return View();
+        // Si viene del registro, precargamos el correo para que solo escriba su contrasena
+        var modelo = new LoginViewModel();
+
+        // Si viene del registro, precargamos el documento para que solo escriba su contrasena
+        if (TempData["DocumentoRegistrado"] is string documento)
+            modelo.Documento = documento;
+        if (TempData["TipoDocumentoRegistrado"] is int idTipo)
+            modelo.IdTipoDocumento = idTipo;
+
+        await CargarTiposAsync(modelo);
+        return View(modelo);
     }
 
     // Recibe el formulario de login
@@ -45,12 +59,26 @@ public class AuthController : Controller
     public async Task<IActionResult> Login(LoginViewModel modelo)
     {
         if (!ModelState.IsValid)
+        {
+            await CargarTiposAsync(modelo);
             return View(modelo);
+        }
 
-        var usuario = await _userManager.FindByEmailAsync(modelo.Correo);
+        var tipo = await _tiposDocumento.ObtenerPorIdAsync(modelo.IdTipoDocumento);
+        if (tipo == null)
+        {
+            ModelState.AddModelError(string.Empty, "El tipo de documento no es válido");
+            await CargarTiposAsync(modelo);
+            return View(modelo);
+        }
+
+        // El usuario de Identity es CODIGO-NUMERO (ej. DNI-71000001)
+        var usuario = await _userManager.FindByNameAsync(
+            Documento.ArmarUsuario(tipo.Codigo, modelo.Documento));
         if (usuario == null || !usuario.Activo)
         {
-            ModelState.AddModelError(string.Empty, "Correo o contraseña incorrectos");
+            ModelState.AddModelError(string.Empty, "Documento o contraseña incorrectos");
+            await CargarTiposAsync(modelo);
             return View(modelo);
         }
 
@@ -63,8 +91,9 @@ public class AuthController : Controller
         if (resultado.IsLockedOut)
             ModelState.AddModelError(string.Empty, "Cuenta bloqueada por 15 minutos por demasiados intentos fallidos");
         else
-            ModelState.AddModelError(string.Empty, "Correo o contraseña incorrectos");
+            ModelState.AddModelError(string.Empty, "Documento o contraseña incorrectos");
 
+        await CargarTiposAsync(modelo);
         return View(modelo);
     }
 
@@ -109,14 +138,34 @@ public class AuthController : Controller
             return View(modelo);
         }
 
-        // 1) Buscamos si ya existe un paciente con ese DNI.
+        // 0) El formato del numero depende del tipo elegido (DNI, CE, pasaporte, CNV)
+        var tipo = await _tiposDocumento.ObtenerPorIdAsync(modelo.IdTipoDocumento);
+        if (tipo == null || !tipo.Activo)
+        {
+            ModelState.AddModelError(nameof(modelo.IdTipoDocumento), "El tipo de documento no es válido");
+            await CargarListasAsync(modelo);
+            return View(modelo);
+        }
+
+        var errorDocumento = Documento.Validar(tipo, modelo.Dni);
+        if (errorDocumento != null)
+        {
+            ModelState.AddModelError(nameof(modelo.Dni), errorDocumento);
+            await CargarListasAsync(modelo);
+            return View(modelo);
+        }
+
+        modelo.Dni = Documento.Normalizar(modelo.Dni);
+
+        // 1) Buscamos si ya existe un paciente con ese documento.
         //    Puede existir si el personal de Admision lo registro antes (RF-02) y aun no tiene cuenta.
-        var existentes = await _pacientes.BuscarAsync(p => p.Dni == modelo.Dni);
+        var existentes = await _pacientes.BuscarAsync(
+            p => p.Dni == modelo.Dni && p.IdTipoDocumento == modelo.IdTipoDocumento);
         var paciente = existentes.FirstOrDefault();
 
         if (paciente != null && paciente.UsuarioId != null)
         {
-            ModelState.AddModelError(nameof(modelo.Dni), "Ya existe una cuenta registrada con este DNI");
+            ModelState.AddModelError(nameof(modelo.Dni), $"Ya existe una cuenta registrada con este {tipo.Nombre}");
             await CargarListasAsync(modelo);
             return View(modelo);
         }
@@ -124,8 +173,8 @@ public class AuthController : Controller
         // 2) Creamos la cuenta de usuario (tabla de Identity). La contrasena se guarda cifrada (hash).
         var usuario = new Usuario
         {
-            UserName = modelo.Correo,
-            Email = modelo.Correo,
+            UserName = Documento.ArmarUsuario(tipo.Codigo, modelo.Dni),   // ej. "DNI-71000001"
+            Email = modelo.Correo,      // opcional: solo para recuperar la contrasena
             PhoneNumber = modelo.Telefono,
             Nombres = $"{modelo.Nombres} {modelo.ApellidoPaterno} {modelo.ApellidoMaterno}".Trim(),
             Activo = true
@@ -152,6 +201,7 @@ public class AuthController : Controller
             {
                 paciente = new Paciente
                 {
+                    IdTipoDocumento = modelo.IdTipoDocumento,
                     Dni = modelo.Dni,
                     PorcentajeImportancia = 100m   // todo paciente nuevo empieza con 100% de importancia
                 };
@@ -183,16 +233,37 @@ public class AuthController : Controller
             return View(modelo);
         }
 
-        // 5) Iniciamos sesion automaticamente y lo mandamos al inicio
-        await _signInManager.SignInAsync(usuario, isPersistent: false);
-        return RedirectToAction("Index", "Home");
+        // 5) NO se inicia sesion automaticamente: el paciente debe autenticarse
+        //    manualmente con las credenciales que acaba de crear.
+        TempData["RegistroExitoso"] =
+            "Su cuenta fue creada correctamente. Ingrese con su DNI y contraseña.";
+        TempData["DocumentoRegistrado"] = modelo.Dni;
+        TempData["TipoDocumentoRegistrado"] = modelo.IdTipoDocumento;
+
+        return RedirectToAction(nameof(Login));
     }
 
     // Llena los menus desplegables de Plan de seguro y Distrito desde la BD
+    // Llena el menu de tipos de documento de la pantalla de login
+    private async Task CargarTiposAsync(LoginViewModel modelo)
+    {
+        var tipos = await _tiposDocumento.BuscarAsync(t => t.Activo);
+
+        modelo.TiposDocumento = tipos
+            .OrderBy(t => t.IdTipoDocumento)
+            .Select(t => new SelectListItem(t.Nombre, t.IdTipoDocumento.ToString()));
+    }
+
+    // Llena los menus de Tipo de documento, Plan de seguro y Distrito desde la BD
     private async Task CargarListasAsync(RegisterViewModel modelo)
     {
         var planes = await _planes.ObtenerTodosAsync();
         var distritos = await _distritos.ObtenerTodosAsync();
+        var tipos = await _tiposDocumento.BuscarAsync(t => t.Activo);
+
+        modelo.TiposDocumento = tipos
+            .OrderBy(t => t.IdTipoDocumento)
+            .Select(t => new SelectListItem(t.Nombre, t.IdTipoDocumento.ToString()));
 
         modelo.PlanesSeguro = planes
             .OrderBy(p => p.Nombre)
@@ -206,7 +277,8 @@ public class AuthController : Controller
     // Identity devuelve sus mensajes en ingles; aqui traducimos los mas comunes
     private static string TraducirError(IdentityError error) => error.Code switch
     {
-        "DuplicateUserName" or "DuplicateEmail" => "Ya existe una cuenta con este correo",
+        "DuplicateUserName" => "Ya existe una cuenta registrada con ese documento",
+        "InvalidUserName" => "El número de documento tiene caracteres no permitidos",
         "PasswordRequiresUpper" => "La contraseña debe tener al menos una letra mayúscula",
         "PasswordRequiresLower" => "La contraseña debe tener al menos una letra minúscula",
         "PasswordRequiresDigit" => "La contraseña debe tener al menos un número",

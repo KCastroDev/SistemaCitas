@@ -1,4 +1,5 @@
-﻿using SistemaCitas.Models;
+﻿using SistemaCitas.Helpers;
+using SistemaCitas.Models;
 using SistemaCitas.Repositories;
 
 namespace SistemaCitas.Services;
@@ -8,15 +9,18 @@ public class PacienteService : IPacienteService
     private readonly IRepositorio<Paciente> _pacientes;
     private readonly IRepositorio<PlanSeguro> _planes;
     private readonly IRepositorio<Distrito> _distritos;
+    private readonly IRepositorio<TipoDocumento> _tiposDocumento;
 
     public PacienteService(
         IRepositorio<Paciente> pacientes,
         IRepositorio<PlanSeguro> planes,
-        IRepositorio<Distrito> distritos)
+        IRepositorio<Distrito> distritos,
+        IRepositorio<TipoDocumento> tiposDocumento)
     {
         _pacientes = pacientes;
         _planes = planes;
         _distritos = distritos;
+        _tiposDocumento = tiposDocumento;
     }
 
     public async Task<IEnumerable<Paciente>> BuscarAsync(string? texto)
@@ -46,13 +50,21 @@ public class PacienteService : IPacienteService
 
     public async Task<ResultadoOperacion> RegistrarPresencialAsync(Paciente paciente, string registradoPorId)
     {
-        // Regla 1: el DNI debe ser de 8 digitos
-        if (paciente.Dni.Length != 8 || !paciente.Dni.All(char.IsDigit))
-            return ResultadoOperacion.Falla("El DNI debe tener 8 dígitos");
+        // Regla 1: el numero debe cumplir el formato del tipo de documento elegido
+        var tipo = await _tiposDocumento.ObtenerPorIdAsync(paciente.IdTipoDocumento);
+        if (tipo == null || !tipo.Activo)
+            return ResultadoOperacion.Falla("El tipo de documento no es válido");
 
-        // Regla 2: no puede haber dos pacientes con el mismo DNI
-        if (await _pacientes.ExisteAsync(p => p.Dni == paciente.Dni))
-            return ResultadoOperacion.Falla("Ya existe un paciente registrado con este DNI");
+        var errorDocumento = Documento.Validar(tipo, paciente.Dni);
+        if (errorDocumento != null)
+            return ResultadoOperacion.Falla(errorDocumento);
+
+        paciente.Dni = Documento.Normalizar(paciente.Dni);
+
+        // Regla 2: no puede haber dos pacientes con el mismo tipo y numero de documento
+        if (await _pacientes.ExisteAsync(p => p.Dni == paciente.Dni
+                                              && p.IdTipoDocumento == paciente.IdTipoDocumento))
+            return ResultadoOperacion.Falla($"Ya existe un paciente registrado con este {tipo.Nombre}");
 
         // Regla 3: fecha de nacimiento razonable
         var hoy = DateOnly.FromDateTime(DateTime.Today);

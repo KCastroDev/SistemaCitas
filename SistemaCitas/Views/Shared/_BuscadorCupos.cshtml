@@ -67,7 +67,9 @@
 
     @if (!Model.Cupos.Any())
     {
-        <div class="alert alert-warning">El doctor no atiende ese día (o ya pasaron todas sus horas). Pruebe con otra fecha.</div>
+        <div class="alert alert-warning">
+            @(Model.MotivoSinCupos ?? "No hay cupos disponibles para esa fecha. Pruebe con otra.")
+        </div>
     }
     else
     {
@@ -115,17 +117,17 @@
 
 <script>
     // Al elegir especialidad se limpia el doctor; al elegir doctor o fecha se vuelve a buscar.
-    (function () {
+    (function() {
         var form = document.getElementById('formBuscar');
         var esp = document.getElementById('idEspecialidad');
         var doc = document.getElementById('idDoctor');
         var fecha = document.getElementById('fecha');
-        esp.addEventListener('change', function () {
+        esp.addEventListener('change', function() {
             doc.disabled = false; doc.value = ''; fecha.value = '';
             doc.disabled = true; fecha.disabled = true;
             form.submit();
         });
-        doc.addEventListener('change', function () { fecha.disabled = false; form.submit(); });
-        fecha.addEventListener('change', function () { form.submit(); });
+        doc.addEventListener('change', function() { fecha.disabled = false; form.submit(); });
+        fecha.addEventListener('change', function() { form.submit(); });
     })();
 </script>

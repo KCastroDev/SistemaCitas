@@ -19,6 +19,7 @@ public class AdmisionController : Controller
     private readonly UserManager<Usuario> _userManager;
     private readonly IRepositorio<PlanSeguro> _planes;
     private readonly IRepositorio<Distrito> _distritos;
+    private readonly IRepositorio<TipoDocumento> _tiposDocumento;
     private readonly ICitaService _citaService;
 
     public AdmisionController(
@@ -26,12 +27,14 @@ public class AdmisionController : Controller
         UserManager<Usuario> userManager,
         IRepositorio<PlanSeguro> planes,
         IRepositorio<Distrito> distritos,
+        IRepositorio<TipoDocumento> tiposDocumento,
         ICitaService citaService)
     {
         _pacienteService = pacienteService;
         _userManager = userManager;
         _planes = planes;
         _distritos = distritos;
+        _tiposDocumento = tiposDocumento;
         _citaService = citaService;
     }
 
@@ -67,6 +70,7 @@ public class AdmisionController : Controller
         // Pasamos los datos del formulario a un Paciente
         var paciente = new Paciente
         {
+            IdTipoDocumento = modelo.IdTipoDocumento,
             Dni = modelo.Dni,
             Nombres = modelo.Nombres.Trim(),
             ApellidoPaterno = modelo.ApellidoPaterno.Trim(),
@@ -158,6 +162,11 @@ public class AdmisionController : Controller
     {
         var planes = await _planes.ObtenerTodosAsync();
         var distritos = await _distritos.ObtenerTodosAsync();
+        var tipos = await _tiposDocumento.BuscarAsync(t => t.Activo);
+
+        modelo.TiposDocumento = tipos
+            .OrderBy(t => t.IdTipoDocumento)
+            .Select(t => new SelectListItem(t.Nombre, t.IdTipoDocumento.ToString()));
 
         modelo.PlanesSeguro = planes
             .OrderBy(p => p.Nombre)

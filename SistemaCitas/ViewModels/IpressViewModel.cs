@@ -7,10 +7,16 @@ public class IpressViewModel
 {
     public int IdIpress { get; set; }
 
+    // Solo numeros: se acepta de 1 a 8 digitos y el sistema lo completa con ceros
+    // a la izquierda hasta 8 (ej. "1" -> "00000001").
     [Required(ErrorMessage = "El código RENIPRESS es obligatorio")]
-    [StringLength(20)]
+    [RegularExpression(@"^\d{1,8}$", ErrorMessage = "El código RENIPRESS solo admite números (máximo 8 dígitos)")]
     [Display(Name = "Código RENIPRESS")]
     public string CodigoRenipress { get; set; } = null!;
+
+    // Valor que se guarda en la base de datos: siempre 8 digitos con ceros a la izquierda
+    public string CodigoRenipressNormalizado =>
+        (CodigoRenipress ?? string.Empty).Trim().PadLeft(8, '0');
 
     [Required(ErrorMessage = "El nombre es obligatorio")]
     [StringLength(150)]
