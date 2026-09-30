@@ -17,6 +17,7 @@ public class AppDbContext : IdentityDbContext<Usuario>
     public DbSet<PlanSeguro> PlanesSeguro => Set<PlanSeguro>();
     public DbSet<TipoContrato> TiposContrato => Set<TipoContrato>();
     public DbSet<Especialidad> Especialidades => Set<Especialidad>();
+    public DbSet<TipoDocumento> TiposDocumento => Set<TipoDocumento>();
     public DbSet<Paciente> Pacientes => Set<Paciente>();
     public DbSet<Doctor> Doctores => Set<Doctor>();
     public DbSet<DoctorEspecialidad> DoctorEspecialidades => Set<DoctorEspecialidad>();
@@ -57,7 +58,12 @@ public class AppDbContext : IdentityDbContext<Usuario>
             .HasKey(ad => new { ad.IdAtencion, ad.CodigoCie10 });
 
         // Indices unicos
-        b.Entity<Paciente>().HasIndex(p => p.Dni).IsUnique();
+        // La unicidad es por tipo + numero, no solo por numero
+        b.Entity<Paciente>().HasIndex(p => new { p.IdTipoDocumento, p.Dni }).IsUnique();
+        b.Entity<TipoDocumento>().HasIndex(t => t.Codigo).IsUnique();
+
+        b.Entity<Paciente>().HasOne(p => p.TipoDocumento).WithMany(t => t.Pacientes)
+            .HasForeignKey(p => p.IdTipoDocumento);
         b.Entity<Doctor>().HasIndex(d => d.Cmp).IsUnique();
         b.Entity<Doctor>().HasIndex(d => d.Dni).IsUnique();
         b.Entity<Ipress>().HasIndex(i => i.CodigoRenipress).IsUnique();
@@ -67,7 +73,7 @@ public class AppDbContext : IdentityDbContext<Usuario>
         b.Entity<Cita>().HasIndex(c => new { c.IdDoctor, c.FechaCita, c.HoraCita }).IsUnique();
 
         // ---- Claves foraneas explicitas ----
-    
+
         b.Entity<Provincia>().HasOne(p => p.Departamento).WithMany(d => d.Provincias)
             .HasForeignKey(p => p.IdDepartamento);
         b.Entity<Distrito>().HasOne(d => d.Provincia).WithMany(p => p.Distritos)
@@ -151,7 +157,7 @@ public class AppDbContext : IdentityDbContext<Usuario>
             .HasForeignKey(p => p.RegistradoPorId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        
+
         foreach (var fk in b.Model.GetEntityTypes()
                                   .SelectMany(t => t.GetForeignKeys())
                                   .Where(fk => !fk.IsOwnership
@@ -163,7 +169,7 @@ public class AppDbContext : IdentityDbContext<Usuario>
         {
             fk.DeleteBehavior = DeleteBehavior.Restrict;
         }
-        
+
         b.Entity<AtencionDiagnostico>().HasOne(ad => ad.Cie10).WithMany()
             .HasForeignKey(ad => ad.CodigoCie10).OnDelete(DeleteBehavior.Restrict);
         b.Entity<DetalleReceta>().HasOne(dr => dr.Medicamento).WithMany()
@@ -189,6 +195,44 @@ public class AppDbContext : IdentityDbContext<Usuario>
             new Distrito { IdDistrito = "130104", Nombre = "Laredo", IdProvincia = "1301" },
             new Distrito { IdDistrito = "130105", Nombre = "Moche", IdProvincia = "1301" },
             new Distrito { IdDistrito = "130109", Nombre = "Huanchaco", IdProvincia = "1301" });
+
+        b.Entity<TipoDocumento>().HasData(
+            new TipoDocumento
+            {
+                IdTipoDocumento = 1,
+                Codigo = "DNI",
+                Nombre = "DNI",
+                LongitudMinima = 8,
+                LongitudMaxima = 8,
+                SoloNumeros = true
+            },
+            new TipoDocumento
+            {
+                IdTipoDocumento = 2,
+                Codigo = "CE",
+                Nombre = "Carné de extranjería",
+                LongitudMinima = 9,
+                LongitudMaxima = 12,
+                SoloNumeros = false
+            },
+            new TipoDocumento
+            {
+                IdTipoDocumento = 3,
+                Codigo = "PAS",
+                Nombre = "Pasaporte",
+                LongitudMinima = 6,
+                LongitudMaxima = 12,
+                SoloNumeros = false
+            },
+            new TipoDocumento
+            {
+                IdTipoDocumento = 4,
+                Codigo = "CNV",
+                Nombre = "Certificado de nacido vivo",
+                LongitudMinima = 10,
+                LongitudMaxima = 10,
+                SoloNumeros = true
+            });
 
         b.Entity<PlanSeguro>().HasData(
             new PlanSeguro { IdPlanSeguro = 1, Nombre = "SIS Gratuito" },

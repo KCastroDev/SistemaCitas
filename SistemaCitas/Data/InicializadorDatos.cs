@@ -31,11 +31,17 @@ public static class InicializadorDatos
         var correo = configuracion["AdminInicial:Correo"] ?? CorreoPorDefecto;
         var contrasena = configuracion["AdminInicial:Contrasena"] ?? ContrasenaPorDefecto;
 
-        if (await userManager.FindByEmailAsync(correo) == null)
+        // La cuenta se identifica por DNI. Para el administrador inicial se usa el
+        // documento configurado en appsettings; si no hay, una cuenta tecnica.
+        var documento = configuracion["AdminInicial:Documento"] ?? "99999999";
+
+        var usuarioAdmin = SistemaCitas.Helpers.Documento.ArmarUsuario("DNI", documento);
+
+        if (await userManager.FindByNameAsync(usuarioAdmin) == null)
         {
             var admin = new Usuario
             {
-                UserName = correo,
+                UserName = usuarioAdmin,
                 Email = correo,
                 EmailConfirmed = true,
                 Nombres = "Administrador del sistema",

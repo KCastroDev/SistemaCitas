@@ -20,6 +20,9 @@ public class BuscarCuposViewModel
     public Doctor? DoctorSeleccionado { get; set; }
     public List<CupoDto> Cupos { get; set; } = new();
 
+    // Explica por que la lista de cupos vino vacia (dia sin horario, CMP no habilitado, horas pasadas...)
+    public string? MotivoSinCupos { get; set; }
+
     // Prioridad (RF-08)
     public string? AvisoPrioridad { get; set; }
     public bool Bloqueado { get; set; }

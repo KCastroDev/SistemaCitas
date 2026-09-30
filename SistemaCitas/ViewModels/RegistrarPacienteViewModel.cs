@@ -9,9 +9,14 @@ namespace SistemaCitas.ViewModels;
 // el paciente registrado en ventanilla todavia no tiene cuenta web.
 public class RegistrarPacienteViewModel
 {
-    [Required(ErrorMessage = "Ingrese el DNI")]
-    [RegularExpression(@"^\d{8}$", ErrorMessage = "El DNI debe tener 8 dígitos")]
-    [Display(Name = "DNI")]
+    [Required(ErrorMessage = "Seleccione el tipo de documento")]
+    [Display(Name = "Tipo de documento")]
+    public int IdTipoDocumento { get; set; } = 1;   // 1 = DNI
+
+    // El formato depende del tipo: lo valida PacienteService con Helpers/Documento
+    [Required(ErrorMessage = "Ingrese el número de documento")]
+    [StringLength(15, MinimumLength = 6, ErrorMessage = "El número de documento no es válido")]
+    [Display(Name = "Número de documento")]
     public string Dni { get; set; } = null!;
 
     [Required(ErrorMessage = "Ingrese los nombres")]
@@ -61,6 +66,9 @@ public class RegistrarPacienteViewModel
     public bool DniVerificado { get; set; }
 
     // Listas para los menus desplegables (se llenan desde la BD)
+    [ValidateNever]
+    public IEnumerable<SelectListItem> TiposDocumento { get; set; } = new List<SelectListItem>();
+
     [ValidateNever]
     public IEnumerable<SelectListItem> PlanesSeguro { get; set; } = new List<SelectListItem>();
 

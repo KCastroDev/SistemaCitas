@@ -42,6 +42,14 @@ builder.Services.AddDefaultIdentity<Usuario>(o =>
     o.Lockout.MaxFailedAccessAttempts = 5;
     o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     o.SignIn.RequireConfirmedAccount = false;
+
+    // La cuenta se identifica por el documento de identidad, no por el correo:
+    // es el identificador que ya usa el sector salud y no todos los pacientes tienen correo.
+    // El usuario tiene la forma CODIGO-NUMERO (ej. DNI-71000001, CE-001234567).
+    o.User.AllowedUserNameCharacters = SistemaCitas.Helpers.Documento.CaracteresPermitidos;
+
+    // El correo es opcional y NO unico: una familia puede compartir un mismo correo.
+    o.User.RequireUniqueEmail = false;
 })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();

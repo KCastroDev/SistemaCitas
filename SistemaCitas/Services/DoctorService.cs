@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SistemaCitas.Helpers;
 using SistemaCitas.Data;
 using SistemaCitas.Models;
 using SistemaCitas.Repositories;
@@ -69,8 +70,10 @@ public class DoctorService : IDoctorService
         if (await _doctores.ExisteAsync(d => d.Cmp == vm.Cmp))
             return ResultadoOperacion.Falla("Ya existe un doctor con ese CMP.");
 
-        if (await _userManager.FindByEmailAsync(vm.Correo) != null)
-            return ResultadoOperacion.Falla("Ya existe una cuenta con ese correo.");
+        // La cuenta se identifica por documento; el correo ya no tiene que ser unico.
+        // Los doctores siempre se registran con DNI (colegiatura del CMP).
+        if (await _userManager.FindByNameAsync(Documento.ArmarUsuario("DNI", vm.Dni)) != null)
+            return ResultadoOperacion.Falla("Ya existe una cuenta registrada con ese DNI.");
 
         if (!await _ipress.ExisteAsync(i => i.IdIpress == vm.IdIpress && i.Activo))
             return ResultadoOperacion.Falla("La IPRESS seleccionada no existe o está inhabilitada.");
@@ -84,7 +87,7 @@ public class DoctorService : IDoctorService
         // 1) Cuenta de acceso
         var usuario = new Usuario
         {
-            UserName = vm.Correo,
+            UserName = Documento.ArmarUsuario("DNI", vm.Dni),   // ej. "DNI-41234501"
             Email = vm.Correo,
             EmailConfirmed = true,
             Nombres = $"{vm.Nombres} {vm.ApellidoPaterno}",
@@ -249,7 +252,8 @@ public class DoctorService : IDoctorService
     // Traduce los mensajes de Identity (vienen en ingles) a espanol.
     private static string TraducirError(IdentityError e) => e.Code switch
     {
-        "DuplicateUserName" or "DuplicateEmail" => "Ya existe una cuenta con ese correo.",
+        "DuplicateUserName" => "Ya existe una cuenta registrada con ese DNI.",
+        "InvalidUserName" => "El DNI solo puede contener números.",
         "PasswordTooShort" => "La contraseña es demasiado corta.",
         "PasswordRequiresDigit" => "La contraseña debe tener al menos un número.",
         "PasswordRequiresLower" => "La contraseña debe tener al menos una minúscula.",

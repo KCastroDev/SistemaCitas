@@ -11,7 +11,11 @@
 
     <div class="mb-3">
         <label asp-for="CodigoRenipress" class="form-label"></label>
-        <input asp-for="CodigoRenipress" class="form-control" />
+        <input asp-for="CodigoRenipress" class="form-control" inputmode="numeric" maxlength="8"
+               placeholder="Ej. 00000001" autocomplete="off"
+               oninput="this.value = this.value.replace(/\D/g, '').slice(0, 8);"
+               onblur="if (this.value) this.value = this.value.padStart(8, '0');" />
+        <div class="form-text">Solo números. Se completa con ceros a la izquierda hasta 8 dígitos.</div>
         <span asp-validation-for="CodigoRenipress" class="text-danger"></span>
     </div>
 

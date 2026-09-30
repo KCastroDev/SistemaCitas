@@ -39,8 +39,19 @@
 <div class="row g-4">
     <div class="col-lg-7">
         <h5>Horario semanal</h5>
-        <table class="table table-striped align-middle">
-            <thead class="table-light">
+
+        @* Caption estandar: busqueda a la izquierda, acciones a la derecha *@
+        <div class="table-caption-bar">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="search" id="filtroHorarios" class="form-control"
+                       placeholder="Buscar día u hora..." autocomplete="off" />
+            </div>
+            <span class="table-counters" id="contadorHorarios"></span>
+        </div>
+
+        <table class="table table-striped table-bordered blue-header-table align-middle" id="tablaHorarios">
+            <thead>
                 <tr>
                     <th>Día</th>
                     <th>Desde</th>
@@ -98,9 +109,40 @@
                 <label asp-for="Nuevo.CuposPorHora" class="form-label"></label>
                 <input asp-for="Nuevo.CuposPorHora" type="number" min="1" max="10" class="form-control" />
             </div>
-            <button type="submit" class="btn btn-primary">Agregar horario</button>
-            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+            <button type="submit" class="btn btn-success"><i class="bi bi-plus-lg"></i> Agregar horario</button>
+            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
             <div class="form-text mt-2">Horario de atención de 06:00 a 22:00. Cada bloque dura al menos 1 hora.</div>
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Filtro global de la tabla (equivalente al matchMode="contains") + contador
+        (function() {
+            const filtro = document.getElementById('filtroHorarios');
+            const tabla = document.getElementById('tablaHorarios');
+            const contador = document.getElementById('contadorHorarios');
+            if (!filtro || !tabla) return;
+
+            const filas = Array.from(tabla.tBodies[0].rows).filter(f => f.cells.length > 1);
+            const total = filas.length;
+
+            function aplicar() {
+                const texto = filtro.value.trim().toLowerCase();
+                let visibles = 0;
+                filas.forEach(f => {
+                    const coincide = !texto || f.innerText.toLowerCase().includes(texto);
+                    f.hidden = !coincide;
+                    if (coincide) visibles++;
+                });
+                contador.textContent = texto
+                    ? `Mostrando ${visibles} de ${total} bloques`
+                    : `${total} bloque(s) registrado(s)`;
+            }
+
+            filtro.addEventListener('input', aplicar);
+            aplicar();
+        })();
+    </script>
+}

@@ -54,7 +54,7 @@ public class IpressController : Controller
 
         var ipress = new Ipress
         {
-            CodigoRenipress = vm.CodigoRenipress,
+            CodigoRenipress = vm.CodigoRenipressNormalizado,
             Nombre = vm.Nombre,
             NivelAtencion = vm.NivelAtencion,
             Direccion = vm.Direccion,
@@ -111,7 +111,7 @@ public class IpressController : Controller
         var ipress = new Ipress
         {
             IdIpress = vm.IdIpress,
-            CodigoRenipress = vm.CodigoRenipress,
+            CodigoRenipress = vm.CodigoRenipressNormalizado,
             Nombre = vm.Nombre,
             NivelAtencion = vm.NivelAtencion,
             Direccion = vm.Direccion,
