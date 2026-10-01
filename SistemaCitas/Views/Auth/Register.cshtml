@@ -13,8 +13,11 @@
     <div class="col-12 col-lg-8">
         <div class="card shadow-sm border-dark">
             <div class="card-body p-4">
-                <h1 class="h3 mb-2 text-center">Registro de paciente</h1>
-                <p class="text-center text-muted mb-4">Complete sus datos para crear su cuenta y poder reservar citas.</p>
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill text-primary" style="font-size: 2.5rem;"></i>
+                    <h1 class="h3 mt-2 mb-1">Registro de paciente</h1>
+                    <p class="text-muted mb-0">Complete sus datos para crear su cuenta y poder reservar citas.</p>
+                </div>
 
                 <form asp-controller="Auth" asp-action="Register" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
@@ -150,11 +153,11 @@
                         <div><span asp-validation-for="AceptaTerminos" class="text-danger"></span></div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100">Crear mi cuenta</button>
+                    <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-person-check-fill me-2"></i>Crear mi cuenta</button>
                 </form>
 
                 <p class="text-center mt-3 mb-0">
-                    ¿Ya tiene una cuenta? <a asp-controller="Auth" asp-action="Login">Inicie sesión</a>
+                    ¿Ya tiene una cuenta? <a asp-controller="Auth" asp-action="Login" class="fw-bold">Inicie sesión</a>
                 </p>
             </div>
         </div>
