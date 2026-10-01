@@ -2,15 +2,18 @@
    El controlador que lo incluye manda en ViewData["Controlador"] el nombre de su controlador
    y en ViewData["ActionBuscar"] la accion que muestra esta pantalla. La reserva va a la accion "Reservar". *@
 @model SistemaCitas.ViewModels.BuscarCuposViewModel
+@inject SistemaCitas.Repositories.IRepositorio<SistemaCitas.Models.TipoDocumento> TiposDocumentoRepo
 @{
     var controlador = ViewData["Controlador"]?.ToString() ?? "Citas";
     var accionBuscar = ViewData["ActionBuscar"]?.ToString() ?? "Nueva";
     var hoy = DateOnly.FromDateTime(DateTime.Now);
     var p = Model.Paciente;
+    // Mostramos el tipo de documento real del paciente (DNI, CE, PAS o CNV), no siempre "DNI"
+    var tipoDocumentoPaciente = (await TiposDocumentoRepo.ObtenerPorIdAsync(p.IdTipoDocumento))?.Codigo ?? "Doc.";
 }
 
 <div class="alert @(Model.Bloqueado ? "alert-danger" : "alert-info")">
-    <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; DNI @p.Dni &middot;
+    <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; @tipoDocumentoPaciente @p.Dni &middot;
     Importancia: <strong>@p.PorcentajeImportancia.ToString("0.##")%</strong>
     <div class="mt-1">@Model.AvisoPrioridad</div>
 </div>
@@ -61,6 +64,38 @@
     </div>
 </form>
 
+@* Punto G que señaló Alexander: antes el usuario tenia que adivinar que dias atiende
+   el doctor. Ahora, apenas elige doctor, le mostramos sus dias y horarios reales. *@
+@if (Model.DoctorSeleccionado != null)
+{
+    var horariosActivos = Model.DoctorSeleccionado.Horarios
+        .Where(h => h.Activo)
+        .OrderBy(h => h.DiaSemana).ThenBy(h => h.HoraInicio)
+        .ToList();
+
+    <div class="alert alert-secondary d-flex gap-2 mb-4">
+        <i class="bi bi-calendar-week fs-4"></i>
+        <div>
+            <strong>Días y horarios de atención de @Model.DoctorSeleccionado.Nombres @Model.DoctorSeleccionado.ApellidoPaterno:</strong>
+            @if (!horariosActivos.Any())
+            {
+                <div>Este doctor todavía no tiene horarios configurados.</div>
+            }
+            else
+            {
+                <ul class="mb-1">
+                    @foreach (var h in horariosActivos)
+                    {
+                        var nombreDia = SistemaCitas.Helpers.Reloj.NombreDia(h.DiaSemana);
+                        <li>@(char.ToUpper(nombreDia[0]) + nombreDia.Substring(1)): @h.HoraInicio.ToString("HH:mm") a @h.HoraFin.ToString("HH:mm")</li>
+                    }
+                </ul>
+                <div class="form-text mb-0">Elija en el paso 3 una fecha que caiga en uno de estos días.</div>
+            }
+        </div>
+    </div>
+}
+
 @if (Model.DoctorSeleccionado != null && Model.Fecha != null)
 {
     <h4 class="mb-3">4. Elija la hora (@Model.Fecha.Value.ToString("dddd dd/MM/yyyy"))</h4>
@@ -110,7 +145,7 @@
                 </div>
             }
 
-            <button type="submit" class="btn btn-success btn-lg">Confirmar cita</button>
+            <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check-circle-fill me-2"></i>Confirmar cita</button>
         </form>
     }
 }

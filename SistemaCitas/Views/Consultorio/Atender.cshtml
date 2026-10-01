@@ -1,4 +1,5 @@
 ﻿@model SistemaCitas.ViewModels.AtencionViewModel
+@inject SistemaCitas.Repositories.IRepositorio<SistemaCitas.Models.TipoDocumento> TiposDocumentoRepo
 @{
     ViewData["Title"] = "Registrar atención";
     var p = Model.Paciente;
@@ -10,6 +11,9 @@
         edad = hoy.Year - p.FechaNacimiento.Year;
         if (p.FechaNacimiento.AddYears(edad) > hoy) { edad--; }
     }
+    var tipoDocumentoPaciente = p != null
+        ? (await TiposDocumentoRepo.ObtenerPorIdAsync(p.IdTipoDocumento))?.Codigo ?? "Doc."
+        : "";
 }
 
 <h1 class="mb-3">Registrar atención</h1>
@@ -17,7 +21,7 @@
 @if (p != null && c != null)
 {
     <div class="alert alert-info fs-5">
-        <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; DNI @p.Dni &middot; @edad años &middot; @(p.Sexo == "M" ? "Masculino" : "Femenino")<br />
+        <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; @tipoDocumentoPaciente @p.Dni &middot; @edad años &middot; @(p.Sexo == "M" ? "Masculino" : "Femenino")<br />
         Cita del @c.FechaCita.ToString("dd/MM/yyyy") a las @c.HoraCita.ToString("HH:mm")
         <a asp-action="Historial" asp-route-idPaciente="@p.IdPaciente" class="ms-2">Ver historial clínico</a>
     </div>

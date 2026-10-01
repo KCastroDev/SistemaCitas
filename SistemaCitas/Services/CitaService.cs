@@ -109,7 +109,9 @@ public class CitaService : ICitaService
             return vm;
         }
 
-        vm.DoctorSeleccionado = elegido;
+        // Pedimos el doctor con sus horarios cargados (la lista de arriba no los trae)
+        // para poder mostrarle al usuario que dias y horas atiende antes de elegir fecha.
+        vm.DoctorSeleccionado = await _doctores.ObtenerConDetalleAsync(elegido.IdDoctor) ?? elegido;
 
         if (fecha != null && !vm.Bloqueado)
         {
