@@ -1,7 +1,10 @@
-﻿@{
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<SistemaCitas.Models.Usuario> UserManager
+@{
     ViewData["Title"] = "Inicio";
 
     var autenticado = User.Identity?.IsAuthenticated == true;
+    // Mostramos el nombre real del usuario (no el DNI, que ahora es el usuario de inicio de sesion)
+    var usuarioActual = autenticado ? await UserManager.GetUserAsync(User) : null;
 
     // Accesos rapidos segun el rol (los modulos salen del informe: RF-01 a RF-15).
     // Url = null significa que ese modulo todavia no esta construido: se muestra como "Proximamente".
@@ -73,7 +76,7 @@
     }
     else
     {
-        <p class="fs-4 mb-0">Bienvenido, <strong>@User.Identity!.Name</strong></p>
+        <p class="fs-4 mb-0">Bienvenido, <strong>@(usuarioActual?.Nombres ?? User.Identity!.Name)</strong></p>
     }
 </section>
 
