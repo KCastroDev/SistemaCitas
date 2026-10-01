@@ -32,6 +32,7 @@
 }
 else
 {
+    <div class="table-responsive">
     <table class="table table-striped align-middle fs-5">
         <thead class="table-light">
             <tr>
@@ -67,11 +68,11 @@ else
                             <form asp-action="CambiarEstadoCita" method="post" class="d-inline-flex gap-1">
                                 <input type="hidden" name="id" value="@c.IdCita" />
                                 <input type="hidden" name="fecha" value="@Model.Fecha.ToString("yyyy-MM-dd")" />
-                                <button type="submit" name="estado" value="@((int)EstadoCita.Asistido)" class="btn btn-success btn-sm">Asistió</button>
+                                <button type="submit" name="estado" value="@((int)EstadoCita.Asistido)" class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i>Asistió</button>
                                 <button type="submit" name="estado" value="@((int)EstadoCita.Falto)" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('¿Registrar inasistencia? Se reducirá la importancia del paciente.');">Faltó</button>
-                                <button type="submit" name="estado" value="@((int)EstadoCita.Cancelado)" class="btn btn-outline-secondary btn-sm"
-                                        onclick="return confirm('¿Cancelar esta cita?');">Cancelar</button>
+                                        onclick="return confirm('¿Registrar inasistencia? Se reducirá la importancia del paciente.');"><i class="bi bi-exclamation-triangle me-1"></i>Faltó</button>
+                                <button type="submit" name="estado" value="@((int)EstadoCita.Cancelado)" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('¿Cancelar esta cita?');"><i class="bi bi-x-circle me-1"></i>Cancelar</button>
                             </form>
                         }
                     </td>
@@ -79,4 +80,5 @@ else
             }
         </tbody>
     </table>
+    </div>
 }
