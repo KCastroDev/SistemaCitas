@@ -8,7 +8,8 @@ public static class Roles
     public const string Admision = "Admision";
     public const string Doctor = "Doctor";
     public const string Paciente = "Paciente";
+    public const string Digitador = "Digitador";
 
     // Lista completa: la usa el inicializador para crear los roles en la BD
-    public static readonly string[] Todos = { Administrador, Admision, Doctor, Paciente };
+    public static readonly string[] Todos = { Administrador, Admision, Doctor, Paciente, Digitador };
 }

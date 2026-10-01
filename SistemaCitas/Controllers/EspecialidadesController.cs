@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaCitas.Models;
 using SistemaCitas.Repositories;
+using SistemaCitas.Services;
 
 namespace SistemaCitas.Controllers;
 
@@ -10,8 +11,13 @@ public class EspecialidadesController : Controller
 {
     // El controlador ya NO conoce el DbContext: solo habla con el repositorio.
     private readonly IEspecialidadRepositorio _repo;
+    private readonly IAuditoriaService _auditoria;
 
-    public EspecialidadesController(IEspecialidadRepositorio repo) => _repo = repo;
+    public EspecialidadesController(IEspecialidadRepositorio repo, IAuditoriaService auditoria)
+    {
+        _repo = repo;
+        _auditoria = auditoria;
+    }
 
     // GET: Especialidades
     public async Task<IActionResult> Index(string? buscar)
@@ -40,6 +46,9 @@ public class EspecialidadesController : Controller
         {
             await _repo.AgregarAsync(especialidad);
             await _repo.GuardarCambiosAsync();
+
+            await _auditoria.RegistrarAsync("Especialidad", "Crear", especialidad.Nombre, null, especialidad.Nombre);
+
             TempData["Mensaje"] = "Especialidad registrada correctamente.";
             return RedirectToAction(nameof(Index));
         }
@@ -63,8 +72,22 @@ public class EspecialidadesController : Controller
 
         if (ModelState.IsValid)
         {
-            _repo.Actualizar(especialidad);
+            // Traemos la entidad tal como esta rastreada por EF y le copiamos los valores
+            // nuevos encima, en vez de llamar a Actualizar() con el objeto del formulario:
+            // asi evitamos tener dos instancias con la misma clave primaria rastreadas a la
+            // vez, y de paso nos queda el "antes" para la auditoria (RNF-01).
+            var anterior = await _repo.ObtenerPorIdAsync(id);
+            if (anterior == null) return NotFound();
+
+            var nombreAnterior = anterior.Nombre;
+
+            anterior.Nombre = especialidad.Nombre;
+            anterior.Activo = especialidad.Activo;
+
             await _repo.GuardarCambiosAsync();
+
+            await _auditoria.RegistrarAsync("Especialidad", "Editar", nombreAnterior, nombreAnterior, anterior.Nombre);
+
             TempData["Mensaje"] = "Especialidad actualizada correctamente.";
             return RedirectToAction(nameof(Index));
         }
@@ -82,6 +105,10 @@ public class EspecialidadesController : Controller
         especialidad.Activo = !especialidad.Activo;
         _repo.Actualizar(especialidad);
         await _repo.GuardarCambiosAsync();
+
+        await _auditoria.RegistrarAsync("Especialidad", "Editar", especialidad.Nombre,
+            especialidad.Activo ? "Inactiva" : "Activa",
+            especialidad.Activo ? "Activa" : "Inactiva");
 
         TempData["Mensaje"] = especialidad.Activo
             ? $"La especialidad '{especialidad.Nombre}' fue reactivada."
