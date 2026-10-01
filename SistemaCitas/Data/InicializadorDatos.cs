@@ -5,7 +5,7 @@ namespace SistemaCitas.Data;
 
 // Se ejecuta UNA VEZ cada vez que arranca la aplicacion (ver Program.cs).
 // Es seguro repetirlo: solo crea lo que todavia no existe.
-//   1) Crea los 4 roles del sistema.
+//   1) Crea los roles del sistema.
 //   2) Crea un usuario Administrador inicial para poder entrar la primera vez.
 public static class InicializadorDatos
 {

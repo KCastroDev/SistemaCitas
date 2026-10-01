@@ -8,11 +8,16 @@ public class IpressService : IIpressService
 {
     private static readonly string[] NivelesValidos = { "I", "II", "III" };
     private readonly IIpressRepository _repository;
+    private readonly IAuditoriaService _auditoria;
 
-    public IpressService(IIpressRepository repository)
+    public IpressService(IIpressRepository repository, IAuditoriaService auditoria)
     {
         _repository = repository;
+        _auditoria = auditoria;
     }
+
+    // Texto corto para la bitacora: codigo, nombre y nivel de la IPRESS
+    private static string Describir(Ipress i) => $"{i.CodigoRenipress} - {i.Nombre} - Nivel {i.NivelAtencion}";
 
     public Task<List<Ipress>> ListarAsync() => _repository.GetAllAsync();
 
@@ -29,6 +34,9 @@ public class IpressService : IIpressService
 
         ipress.Activo = true;
         await _repository.AddAsync(ipress);
+
+        await _auditoria.RegistrarAsync("Ipress", "Crear", ipress.CodigoRenipress, null, Describir(ipress));
+
         return (true, null);
     }
 
@@ -37,7 +45,27 @@ public class IpressService : IIpressService
         var error = await ValidarAsync(ipress, esNuevo: false);
         if (error is not null) return (false, error);
 
-        await _repository.UpdateAsync(ipress);
+        // Traemos el registro tal como esta en la base (ya rastreado por EF) para poder
+        // copiarle los valores nuevos encima: asi evitamos tener dos instancias con la
+        // misma clave primaria rastreadas a la vez (eso hace fallar a Update), y de paso
+        // nos queda el "antes" para la auditoria (RNF-01).
+        var anterior = await _repository.GetByIdAsync(ipress.IdIpress);
+        if (anterior is null) return (false, "La IPRESS no existe.");
+
+        var descripcionAnterior = Describir(anterior);
+
+        anterior.CodigoRenipress = ipress.CodigoRenipress;
+        anterior.Nombre = ipress.Nombre;
+        anterior.NivelAtencion = ipress.NivelAtencion;
+        anterior.Direccion = ipress.Direccion;
+        anterior.IdUnidadEjecutora = ipress.IdUnidadEjecutora;
+        anterior.IdDistrito = ipress.IdDistrito;
+        anterior.Activo = ipress.Activo;
+
+        await _repository.UpdateAsync(anterior);
+
+        await _auditoria.RegistrarAsync("Ipress", "Editar", anterior.CodigoRenipress, descripcionAnterior, Describir(anterior));
+
         return (true, null);
     }
 
@@ -48,6 +76,9 @@ public class IpressService : IIpressService
 
         ipress.Activo = false;
         await _repository.UpdateAsync(ipress);
+
+        await _auditoria.RegistrarAsync("Ipress", "Editar", ipress.CodigoRenipress, "Activo", "Inhabilitada");
+
         return (true, null);
     }
 
@@ -58,6 +89,9 @@ public class IpressService : IIpressService
 
         ipress.Activo = true;
         await _repository.UpdateAsync(ipress);
+
+        await _auditoria.RegistrarAsync("Ipress", "Editar", ipress.CodigoRenipress, "Inhabilitada", "Activo");
+
         return (true, null);
     }
 
