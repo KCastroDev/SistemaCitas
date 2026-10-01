@@ -235,8 +235,11 @@ public class AuthController : Controller
 
         // 5) NO se inicia sesion automaticamente: el paciente debe autenticarse
         //    manualmente con las credenciales que acaba de crear.
+        // Antes decia siempre "Ingrese con su DNI...", aunque se haya registrado con
+        // Carne de extranjeria, Pasaporte o Certificado de nacido vivo. Ahora usa el nombre
+        // real del tipo de documento elegido.
         TempData["RegistroExitoso"] =
-            "Su cuenta fue creada correctamente. Ingrese con su DNI y contraseña.";
+            $"Su cuenta fue creada correctamente. Ingrese con su {tipo.Nombre} y contraseña.";
         TempData["DocumentoRegistrado"] = modelo.Dni;
         TempData["TipoDocumentoRegistrado"] = modelo.IdTipoDocumento;
 

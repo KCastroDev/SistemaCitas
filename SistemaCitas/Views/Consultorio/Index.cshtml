@@ -1,8 +1,11 @@
 ﻿@model SistemaCitas.ViewModels.AgendaViewModel
 @using SistemaCitas.Models
+@inject SistemaCitas.Repositories.IRepositorio<SistemaCitas.Models.TipoDocumento> TiposDocumentoRepo
 @{
     ViewData["Title"] = "Mi agenda";
     var d = Model.Doctor;
+    // Diccionario id -> codigo (DNI, CE, PAS, CNV) para no mostrar siempre "DNI"
+    var tiposDocumento = (await TiposDocumentoRepo.ObtenerTodosAsync()).ToDictionary(t => t.IdTipoDocumento, t => t.Codigo);
 }
 
 <h1 class="mb-1">Mi agenda</h1>
@@ -47,7 +50,7 @@ else
             {
                 <tr>
                     <td>@c.HoraCita.ToString("HH:mm")</td>
-                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres<br /><small class="text-muted">DNI @c.Paciente.Dni</small></td>
+                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres<br /><small class="text-muted">@(tiposDocumento.GetValueOrDefault(c.Paciente.IdTipoDocumento, "Doc.")) @c.Paciente.Dni</small></td>
                     <td>
                         @if (c.Estado == EstadoCita.Asistido)
                         {

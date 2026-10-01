@@ -1,16 +1,18 @@
 ﻿@model SistemaCitas.ViewModels.HistorialPacienteViewModel
+@inject SistemaCitas.Repositories.IRepositorio<SistemaCitas.Models.TipoDocumento> TiposDocumentoRepo
 @{
     ViewData["Title"] = "Historial clínico";
     var p = Model.Paciente;
     var hoy = DateOnly.FromDateTime(DateTime.Today);
     var edad = hoy.Year - p.FechaNacimiento.Year;
     if (p.FechaNacimiento.AddYears(edad) > hoy) { edad--; }
+    var tipoDocumentoPaciente = (await TiposDocumentoRepo.ObtenerPorIdAsync(p.IdTipoDocumento))?.Codigo ?? "Doc.";
 }
 
 <h1 class="mb-3">Historial clínico</h1>
 
 <div class="alert alert-info fs-5">
-    <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; DNI @p.Dni &middot;
+    <strong>@p.ApellidoPaterno @p.ApellidoMaterno, @p.Nombres</strong> &middot; @tipoDocumentoPaciente @p.Dni &middot;
     @edad años &middot; @(p.Sexo == "M" ? "Masculino" : "Femenino")
 </div>
 

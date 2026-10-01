@@ -1,7 +1,9 @@
 ﻿@model SistemaCitas.ViewModels.CitasDelDiaViewModel
 @using SistemaCitas.Models
+@inject SistemaCitas.Repositories.IRepositorio<SistemaCitas.Models.TipoDocumento> TiposDocumentoRepo
 @{
     ViewData["Title"] = "Admisión - Citas del día";
+    var tiposDocumento = (await TiposDocumentoRepo.ObtenerTodosAsync()).ToDictionary(t => t.IdTipoDocumento, t => t.Codigo);
 }
 
 <h1 class="mb-3">Citas del día</h1>
@@ -54,7 +56,7 @@ else
                 };
                 <tr>
                     <td>@c.HoraCita.ToString("HH:mm")</td>
-                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres<br /><small class="text-muted">DNI @c.Paciente.Dni</small></td>
+                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres<br /><small class="text-muted">@(tiposDocumento.GetValueOrDefault(c.Paciente.IdTipoDocumento, "Doc.")) @c.Paciente.Dni</small></td>
                     <td>@c.Paciente.PorcentajeImportancia.ToString("0.##")%</td>
                     <td>@c.Doctor.ApellidoPaterno, @c.Doctor.Nombres</td>
                     <td>@c.Canal</td>
