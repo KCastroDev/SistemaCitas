@@ -1,0 +1,102 @@
+﻿@model SistemaCitas.ViewModels.InhabilitarIpressViewModel
+@{
+    ViewData["Title"] = "Inhabilitar establecimiento";
+}
+
+<div class="d-print-none">
+    <h1 class="h3">Inhabilitar establecimiento</h1>
+    <hr />
+</div>
+
+@* Cabecera: en pantalla es una alerta; al imprimir queda como encabezado del reporte *@
+<div class="alert @(Model.Total == 0 ? "alert-info" : "alert-warning")">
+    <h5 class="alert-heading">@Model.Ipress.Nombre</h5>
+    <p class="mb-1">
+        RENIPRESS @Model.Ipress.CodigoRenipress · Nivel @Model.Ipress.NivelAtencion
+        @if (Model.Ipress.Distrito != null)
+        {
+            <text>· @Model.Ipress.Distrito.Nombre</text>
+        }
+    </p>
+
+    @if (Model.Total == 0)
+    {
+        <p class="mb-0">
+            Este establecimiento <strong>no tiene citas pendientes</strong>.
+            Puede inhabilitarlo sin afectar a ningún paciente.
+        </p>
+    }
+    else
+    {
+        <p class="mb-0">
+            Tiene <strong>@Model.Total cita(s) pendiente(s)</strong>
+            entre el @Model.PrimeraFecha?.ToString("dd/MM/yyyy") y el @Model.UltimaFecha?.ToString("dd/MM/yyyy").
+            Al inhabilitarlo <strong>no se podrán agendar citas nuevas</strong>, pero las que ya existen
+            se conservan: Admisión debe contactar a estos pacientes para reprogramarlas.
+        </p>
+    }
+</div>
+
+@if (Model.Total > 0)
+{
+    <div class="table-caption-bar">
+        <h5 class="mb-0">Pacientes por contactar</h5>
+        <button type="button" class="btn btn-outline-secondary d-print-none" onclick="window.print();">
+            <i class="bi bi-printer"></i> Imprimir lista
+        </button>
+    </div>
+
+    <table class="table table-striped table-bordered blue-header-table align-middle">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Documento</th>
+                <th>Teléfono</th>
+                <th>Doctor</th>
+                <th>Canal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.CitasPendientes)
+            {
+                <tr>
+                    <td>@c.FechaCita.ToString("dd/MM/yyyy")</td>
+                    <td>@c.HoraCita.ToString("HH:mm")</td>
+                    <td>@c.Paciente.ApellidoPaterno @c.Paciente.ApellidoMaterno, @c.Paciente.Nombres</td>
+                    <td>@c.Paciente.Dni</td>
+                    <td>@(string.IsNullOrWhiteSpace(c.Paciente.Telefono) ? "Sin teléfono" : c.Paciente.Telefono)</td>
+                    <td>@c.Doctor.ApellidoPaterno, @c.Doctor.Nombres</td>
+                    <td>@c.Canal</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p class="text-muted small">
+        Impreso el @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+    </p>
+}
+
+<div class="mt-4 d-print-none">
+    <form asp-action="Inhabilitar" asp-route-id="@Model.Ipress.IdIpress" method="post" class="d-inline">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-slash-circle"></i>
+            @(Model.Total == 0 ? "Inhabilitar establecimiento" : $"Sí, inhabilitar y reprogramar {Model.Total} cita(s)")
+        </button>
+    </form>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</div>
+
+@section Scripts {
+    <style>
+        /* Al imprimir se ocultan menú, botones y pie de página: queda solo el listado */
+        @@media print {
+            .navbar, footer, .btn, .d-print-none { display: none !important; }
+            .alert { border: 1px solid #000; }
+            a[href]:after { content: ""; }
+        }
+    </style>
+}

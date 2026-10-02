@@ -59,4 +59,14 @@ public class CitaRepositorio : Repositorio<Cita>, ICitaRepositorio
             .Include(c => c.Triaje)
             .Include(c => c.AtencionMedica)
             .FirstOrDefaultAsync(c => c.IdCita == idCita);
+
+    public async Task<IEnumerable<Cita>> ListarPendientesPorIpressAsync(int idIpress, DateOnly desde) =>
+        await _dbSet.AsNoTracking()
+            .Include(c => c.Paciente)
+            .Include(c => c.Doctor)
+            .Where(c => c.IdIpress == idIpress
+                        && c.Estado == EstadoCita.Pendiente
+                        && c.FechaCita >= desde)
+            .OrderBy(c => c.FechaCita).ThenBy(c => c.HoraCita)
+            .ToListAsync();
 }

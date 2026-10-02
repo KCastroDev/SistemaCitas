@@ -91,6 +91,7 @@ public class CitaService : ICitaService
 
         var doctores = (await _doctores.ListarAsync(null))
             .Where(d => d.Activo
+                        && d.Ipress.Activo
                         && d.EstadoHabilitacion == Habilitado
                         && d.DoctorEspecialidades.Any(de => de.IdEspecialidad == idEspecialidad))
             .ToList();
@@ -154,6 +155,8 @@ public class CitaService : ICitaService
 
         if (doctor.EstadoHabilitacion != Habilitado)
             return $"El doctor figura como \"{doctor.EstadoHabilitacion}\" en el CMP, por eso no se muestran cupos.";
+        if (!doctor.Ipress.Activo)
+            return $"El establecimiento {doctor.Ipress.Nombre} está inhabilitado y no recibe citas.";
 
         var activos = doctor.Horarios.Where(h => h.Activo).ToList();
         if (!activos.Any())
@@ -169,6 +172,7 @@ public class CitaService : ICitaService
         if (fecha == Reloj.Hoy)
             return $"Hoy el doctor atiende de {delDia.Min(h => h.HoraInicio):HH\\:mm} a {delDia.Max(h => h.HoraFin):HH\\:mm}, " +
                    "y esas horas ya pasaron. Elija otra fecha.";
+        
 
         return "No hay cupos disponibles para esa fecha.";
     }
@@ -178,7 +182,7 @@ public class CitaService : ICitaService
         var lista = new List<CupoDto>();
 
         var doctor = await _doctores.ObtenerConDetalleAsync(idDoctor);
-        if (doctor == null || !doctor.Activo || doctor.EstadoHabilitacion != Habilitado) return lista;
+        if (doctor == null || !doctor.Activo || doctor.EstadoHabilitacion != Habilitado || !doctor.Ipress.Activo) return lista;
 
         // Reloj.Hoy usa la hora de Peru, no la del servidor (evita el corrimiento de un dia)
         var hoy = Reloj.Hoy;
@@ -241,6 +245,9 @@ public class CitaService : ICitaService
 
         if (doctor.EstadoHabilitacion != Habilitado)
             return ResultadoOperacion.Falla("El doctor no está habilitado por el CMP.");
+        if (!doctor.Ipress.Activo)                               // ← nuevo
+            return ResultadoOperacion.Falla(
+                $"El establecimiento {doctor.Ipress.Nombre} está inhabilitado y no puede recibir citas.");
 
         var ahora = Reloj.Ahora;
         var hoy = Reloj.Hoy;

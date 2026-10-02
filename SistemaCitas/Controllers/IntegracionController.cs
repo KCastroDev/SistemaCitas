@@ -34,7 +34,7 @@ public class IntegracionController : ControllerBase
         var lista = await _doctores.ListarAsync(null);
 
         var respuesta = lista
-            .Where(d => d.Activo)
+            .Where(d => d.Activo && d.Ipress.Activo)
             .Select(d => new
             {
                 d.IdDoctor,

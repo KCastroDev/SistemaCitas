@@ -62,8 +62,25 @@ else
                     <td>@c.FechaCita.ToString("dd/MM/yyyy")</td>
                     <td>@c.HoraCita.ToString("HH:mm")</td>
                     <td>@c.Doctor.ApellidoPaterno @c.Doctor.ApellidoMaterno, @c.Doctor.Nombres</td>
-                    <td>@c.Ipress.Nombre</td>
-                    <td><span class="badge @badge">@c.Estado</span></td>
+                    <td>
+                        @c.Ipress.Nombre
+                        @if (!c.Ipress.Activo && c.Estado == EstadoCita.Pendiente)
+                        {
+                            <span class="badge bg-warning text-dark d-block mt-1">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Establecimiento inhabilitado
+                            </span>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge @badge">@c.Estado</span>
+                        @if (!c.Ipress.Activo && c.Estado == EstadoCita.Pendiente)
+                        {
+                            <div class="small text-danger mt-1" style="max-width: 320px;">
+                                Este establecimiento no está atendiendo. Admisión se contactará
+                                con usted para reprogramar su cita.
+                            </div>
+                        }
+                    </td>
                     <td>
                         @if (c.Estado == EstadoCita.Pendiente)
                         {

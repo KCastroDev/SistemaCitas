@@ -24,4 +24,8 @@ public interface ICitaRepositorio : IRepositorio<Cita>
 
     // Una cita con paciente, triaje y atencion, lista para registrar la atencion medica (RF-13)
     Task<Cita?> ObtenerParaAtencionAsync(int idCita);
+
+    // Citas pendientes de una IPRESS desde hoy, con paciente y doctor
+    // (se usa al inhabilitar el establecimiento, para avisar a quien hay que reprogramar)
+    Task<IEnumerable<Cita>> ListarPendientesPorIpressAsync(int idIpress, DateOnly desde);
 }
