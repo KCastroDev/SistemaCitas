@@ -8,13 +8,19 @@ public class IpressService : IIpressService
 {
     private static readonly string[] NivelesValidos = { "I", "II", "III" };
     private readonly IIpressRepository _repository;
+    private readonly ICitaRepositorio _citas;
     private readonly IAuditoriaService _auditoria;
 
-    public IpressService(IIpressRepository repository, IAuditoriaService auditoria)
+    public IpressService(IIpressRepository repository, ICitaRepositorio citas, IAuditoriaService auditoria)
     {
         _repository = repository;
+        _citas = citas;
         _auditoria = auditoria;
     }
+
+    // Citas que quedarian "en el aire" si se inhabilita el establecimiento
+    public async Task<List<Cita>> ListarCitasPendientesAsync(int idIpress) =>
+        (await _citas.ListarPendientesPorIpressAsync(idIpress, Helpers.Reloj.Hoy)).ToList();
 
     // Texto corto para la bitacora: codigo, nombre y nivel de la IPRESS
     private static string Describir(Ipress i) => $"{i.CodigoRenipress} - {i.Nombre} - Nivel {i.NivelAtencion}";
@@ -74,10 +80,15 @@ public class IpressService : IIpressService
         var ipress = await _repository.GetByIdAsync(id);
         if (ipress is null) return (false, "La IPRESS no existe.");
 
+        // Las citas ya programadas NO se cancelan: Admision debe contactar a los pacientes
+        // y reprogramarlas. Se deja constancia de cuantas quedaron pendientes.
+        var pendientes = await ListarCitasPendientesAsync(id);
+
         ipress.Activo = false;
         await _repository.UpdateAsync(ipress);
 
-        await _auditoria.RegistrarAsync("Ipress", "Editar", ipress.CodigoRenipress, "Activo", "Inhabilitada");
+        await _auditoria.RegistrarAsync("Ipress", "Editar", ipress.CodigoRenipress, "Activo",
+            $"Inhabilitada con {pendientes.Count} cita(s) pendiente(s) por reprogramar");
 
         return (true, null);
     }

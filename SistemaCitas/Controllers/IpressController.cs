@@ -132,13 +132,47 @@ public class IpressController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // GET: Ipress/ConfirmarInhabilitar/5
+    // Antes de inhabilitar mostramos las citas que quedarian pendientes, para que
+    // Admision pueda contactar a esos pacientes y reprogramarlas.
+    public async Task<IActionResult> ConfirmarInhabilitar(int id)
+    {
+        var ipress = await _service.ObtenerPorIdAsync(id);
+        if (ipress is null) return NotFound();
+
+        if (!ipress.Activo)
+        {
+            TempData["Mensaje"] = "El establecimiento ya está inhabilitado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var vm = new InhabilitarIpressViewModel
+        {
+            Ipress = ipress,
+            CitasPendientes = await _service.ListarCitasPendientesAsync(id)
+        };
+
+        return View(vm);
+    }
+
     // POST: Ipress/Inhabilitar/5  (RF-12: no se elimina físicamente, se inhabilita)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Inhabilitar(int id)
     {
-        await _service.InhabilitarAsync(id);
-        TempData["Mensaje"] = "IPRESS inhabilitada.";
+        var pendientes = await _service.ListarCitasPendientesAsync(id);
+        var resultado = await _service.InhabilitarAsync(id);
+
+        if (!resultado.Exito)
+        {
+            TempData["Error"] = resultado.Error;
+            return RedirectToAction(nameof(Index));
+        }
+
+        TempData["Mensaje"] = pendientes.Count == 0
+            ? "IPRESS inhabilitada. No tenía citas pendientes."
+            : $"IPRESS inhabilitada. Quedaron {pendientes.Count} cita(s) pendiente(s): Admisión debe contactar a esos pacientes para reprogramarlas.";
+
         return RedirectToAction(nameof(Index));
     }
 

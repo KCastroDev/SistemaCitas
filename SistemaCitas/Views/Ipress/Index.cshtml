@@ -49,12 +49,10 @@
                     <a asp-action="Edit" asp-route-id="@i.IdIpress" class="btn btn-sm btn-warning">Editar</a>
                     @if (i.Activo)
                     {
-                        <form asp-action="Inhabilitar" asp-route-id="@i.IdIpress" method="post" style="display:inline">
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('¿Inhabilitar esta IPRESS?');">
-                                Inhabilitar
-                            </button>
-                        </form>
+                        @* Lleva a la pantalla de confirmación, que avisa cuántas citas quedan pendientes *@
+                        <a asp-action="ConfirmarInhabilitar" asp-route-id="@i.IdIpress" class="btn btn-sm btn-danger">
+                            Inhabilitar
+                        </a>
                     }
                     else
                     {
